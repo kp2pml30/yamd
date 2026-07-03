@@ -1,0 +1,4 @@
+#use(std/xref)
+#section{About the #ref("w")}::
+
+Text.

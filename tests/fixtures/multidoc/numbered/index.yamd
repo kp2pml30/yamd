@@ -1,0 +1,9 @@
+#use(std/toctree)
+#use(std/xref)
+#section{Guide}::
+
+#toc
+
+#toctree(numbered: #t)
+	one.yamd
+	two.yamd

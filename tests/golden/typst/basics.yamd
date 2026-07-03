@@ -1,0 +1,12 @@
+#section{Introduction}::
+
+Some #emph{emphasised} and #strong{bold} text with a #link("https://example.com"){link}.
+
+#list(style: "1")
+	#item: First
+	#item
+		Second, with a nested bulleted list:
+		#list
+			#item: alpha
+			#item: beta
+	#item: Third

@@ -1,0 +1,7 @@
+# tree-sitter ecosystem files (grammar.js, generated src/, corpus expected
+# trees) are conventionally 2-space indented, while corpus *inputs* embed
+# tab-indented YAMD — indent style is deliberately mixed here.
+[*]
+indent_style = unset
+indent_size = unset
+tab_width = unset

@@ -1,0 +1,3 @@
+Line one#(elem 'br)Line two
+
+A rule: #(elem 'hr #:attrs '((class . "sep")))

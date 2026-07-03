@@ -1,0 +1,8 @@
+#use(std/rfc2119)
+
+A conforming server #ref('must) validate the token before use, and it
+#ref('should-not) write the raw token to any log. Caching is #ref('optional);
+an implementation #ref('may) skip it. Every field marked #ref('required) is
+still #ref('must) — the two spellings share one requirement level.
+
+#glossary

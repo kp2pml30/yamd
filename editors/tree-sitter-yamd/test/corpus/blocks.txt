@@ -1,0 +1,178 @@
+================================================================================
+indented block body
+================================================================================
+#list(style: "1")
+	#item: First
+	#item: Second
+after
+--------------------------------------------------------------------------------
+
+(document
+  (block_call
+    (call_name
+      (sigil)
+      (name))
+    (arguments
+      (paren_open)
+      (host
+        (host_code)
+        (host_string))
+      (paren_close))
+    (block
+      (colon_call
+        (call_name
+          (sigil)
+          (name))
+        (body_marker)
+        (body_line
+          (text)))
+      (colon_call
+        (call_name
+          (sigil)
+          (name))
+        (body_marker)
+        (body_line
+          (text)))))
+  (text_line
+    (text)))
+
+================================================================================
+nested blocks
+================================================================================
+before
+#emph
+	first level
+	#strong
+		second level
+	first again
+after
+--------------------------------------------------------------------------------
+
+(document
+  (text_line
+    (text))
+  (block_call
+    (call_name
+      (sigil)
+      (name))
+    (block
+      (text_line
+        (text))
+      (block_call
+        (call_name
+          (sigil)
+          (name))
+        (block
+          (text_line
+            (text))))
+      (text_line
+        (text))))
+  (text_line
+    (text)))
+
+================================================================================
+blank line before block
+================================================================================
+#emph
+
+	block after blank spacer
+after
+--------------------------------------------------------------------------------
+
+(document
+  (block_call
+    (call_name
+      (sigil)
+      (name))
+    (block
+      (text_line
+        (text))))
+  (text_line
+    (text)))
+
+================================================================================
+blank lines inside block
+================================================================================
+#emph
+	first para
+
+	second para
+tail
+--------------------------------------------------------------------------------
+
+(document
+  (block_call
+    (call_name
+      (sigil)
+      (name))
+    (block
+      (text_line
+        (text))
+      (text_line
+        (text))))
+  (text_line
+    (text)))
+
+================================================================================
+raw block body is parsed opaquely as markup
+================================================================================
+#html
+	<span>#not-a-call</span>
+	if (x<1) { y } else { z }
+	trailing ) } brace
+--------------------------------------------------------------------------------
+
+(document
+  (block_call
+    (call_name
+      (sigil)
+      (name))
+    (block
+      (text_line
+        (text)
+        (call_name
+          (sigil)
+          (name))
+        (text))
+      (text_line
+        (text)
+        (text)
+        (text)
+        (text)
+        (text)
+        (brace_group
+          (text))
+        (text)
+        (brace_group
+          (text)))
+      (text_line
+        (text)
+        (text)
+        (text)
+        (text)
+        (text)))))
+
+================================================================================
+dedent by two levels at once
+================================================================================
+#a
+	#b
+		deep
+top
+--------------------------------------------------------------------------------
+
+(document
+  (block_call
+    (call_name
+      (sigil)
+      (name))
+    (block
+      (block_call
+        (call_name
+          (sigil)
+          (name))
+        (block
+          (text_line
+            (text))))))
+  (text_line
+    (text)))

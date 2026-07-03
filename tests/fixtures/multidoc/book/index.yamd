@@ -1,0 +1,11 @@
+#use(std/toctree)
+#use(std/xref)
+#section{Book}::
+
+Read about the #ref("widget") below.
+
+#toc
+
+#toctree
+	intro.yamd
+	guide/setup.yamd

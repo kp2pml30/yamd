@@ -1,0 +1,8 @@
+#use(std/toctree)
+#section{S}::
+
+#toctree(numbered: #t)
+	a.yamd
+
+#toctree(numbered: #t)
+	b.yamd

@@ -1,0 +1,37 @@
+#use(std/code)
+#use(std/math: asciimath)
+
+#section{Math}::
+
+#code{#use(std/math: asciimath)} binds the math plugin to AsciiMath notation
+(the variant chooses the notation; the core knows nothing about math).
+#code|{#m{…}}| is inline math, #code{#math} + indented block is display
+math; both render to MathML.
+
+#code(lang: "plain")
+	The identity #m{e^(i pi) + 1 = 0} is famous.
+
+	#math
+		x = (-b +- sqrt(b^2 - 4a c)) / (2a)
+
+Live:
+
+The identity #m{e^(i pi) + 1 = 0} is famous.
+
+#math
+	x = (-b +- sqrt(b^2 - 4a c)) / (2a)
+
+The supported AsciiMath subset includes fractions (#code{a/b}), sub/super
+scripts (#code{x_i^2}), roots (#code{sqrt(x)}, #code{root(3)(x)}), greek
+names (#code{alpha}, #code{pi}, #code{Gamma}), and big operators
+(#code{sum_(i=0)^n}):
+
+Live: #m{sum_(i=0)^n i^2}, #m{root(3)(x) + sqrt(x^2+1)}, #m{alpha + beta = Gamma - pi}.
+
+Corner cases:
+
+#list
+	#item: #code{#m} is the only inline form — there is deliberately no reader-macro shorthand like #code{$…$}.
+	#item: The body is a custom reader: braces must balance, but #code{#} and markup are not interpreted inside.
+	#item: Unknown symbols degrade gracefully — #m{a ? b} keeps the #code{?} as an operator; nothing errors on unrecognized input.
+	#item: Both forms require the plugin; without #code{#use(std/math: asciimath)} the names #code{m}/#code{math} are unbound.

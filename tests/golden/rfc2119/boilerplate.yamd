@@ -1,0 +1,8 @@
+#use(std/rfc2119)
+
+#rfc2119-boilerplate
+
+The server #ref('must) reject expired tokens and #ref('shall-not) reuse a
+nonce. It #ref('should) rotate keys; it #ref('may) cache the JWKS.
+
+#glossary

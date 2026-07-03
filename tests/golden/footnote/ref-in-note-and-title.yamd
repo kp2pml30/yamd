@@ -1,0 +1,12 @@
+#use(std/footnote)
+#use(std/xref)
+
+#def("vm"){virtual machine}{A sandbox.}
+
+#toc
+
+#section{Design#note{See #ref("vm") for the model.}}::
+
+Body text.
+
+#notes

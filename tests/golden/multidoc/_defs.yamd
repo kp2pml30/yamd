@@ -1,0 +1,2 @@
+#use(std/xref)
+#def("gadget"){gadget}{A small thing.}

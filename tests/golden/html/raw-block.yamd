@@ -1,0 +1,6 @@
+#use(std/html)
+Prose before the block, with inline #html{<strong>raw</strong>} that stays in the paragraph.
+
+#html-block{<div class="note">a block-level div</div>}
+
+Prose after the block, a separate paragraph.

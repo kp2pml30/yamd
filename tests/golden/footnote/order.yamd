@@ -1,0 +1,7 @@
+#use(std/footnote)
+
+Intro.#note{an early note}
+
+#notes
+
+More text appears after the list.#note{a late note}

@@ -1,0 +1,3 @@
+#use(std/code)
+#code(lang: "plain")
+	just <text> & symbols, no #highlight

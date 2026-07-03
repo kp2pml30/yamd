@@ -1,0 +1,5 @@
+This paragraph comes from #emph{_include-fragment.yamd}, spliced in place.
+
+#section{A fragment section}::
+
+The fragment's section nests under the including file's current depth.

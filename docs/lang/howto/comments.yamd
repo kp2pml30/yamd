@@ -1,0 +1,34 @@
+#use(std/code)
+
+#section{Comments}::
+
+Three comment forms, plus the literal-hash escape. #code{##} produces a
+literal #code{#}; #code{#} followed by a space (or end of line) drops the
+rest of the line; #code{#;} drops the rest of the line from that point;
+#code|{#;{…}}| drops a balanced-brace span, possibly multi-line.
+
+#code(lang: "plain")
+	text ## and more
+	kept #; dropped
+	a #;{ b } c
+	# whole line gone
+	end
+
+Live:
+
+text ## and more
+kept #; dropped
+a #;{ b } c
+# whole line gone
+end
+
+(The commented spans vanish; the #code{# whole line gone} line renders as an
+empty line, not a paragraph break marker of its own.)
+
+Corner cases:
+
+#list
+	#item: #code{##} works anywhere in text mode, including inside brace bodies — use it for issue ##42, hex colors, shebangs in prose.
+	#item: Inside host code (#code{#(...)} or #code{(args)}) #code{#;} is Racket's #emph{datum} comment — it comments out the next s-expression, not the rest of the line — and #code{#| … |#} is the host block comment.
+	#item: #code{#;} before a markup re-entry form in host code is a read error (the commented datum is read by Racket); use #code{#| … |#} there.
+	#item: Inside raw bodies (code blocks, fences) #code{#} is plain text — nothing to escape.

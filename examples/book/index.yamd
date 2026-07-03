@@ -1,0 +1,22 @@
+#use(std/toctree)
+#use(std/include)
+#use(std/xref)
+
+#section{Stargazer Handbook}::
+
+#strong{Stargazer} is a fictional telescope-time scheduler; this handbook is
+the YAMD example project. Every chapter exercises a slice of the language —
+the source under #tt{examples/book/} is meant to be read next to its output.
+
+Cross-references span the whole set: the #ref("plan") linked here is defined
+in the protocol chapter, two files away and later in reading order.
+
+#toc
+
+#toctree(numbered: #t depth: 2)
+	intro.yamd
+	usage.yamd
+	spec.yamd
+	extending.yamd
+
+#include("common/colophon.yamd")

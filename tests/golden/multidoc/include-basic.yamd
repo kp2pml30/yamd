@@ -1,0 +1,6 @@
+#use(std/include)
+Before the include.
+
+#include("_child-basic.yamd")
+
+After the include.

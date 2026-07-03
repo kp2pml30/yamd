@@ -1,0 +1,2 @@
+#use(std/math: asciimath)
+#m{alpha + beta = Gamma - pi}

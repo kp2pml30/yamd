@@ -1,0 +1,52 @@
+{
+  "name": "yamd",
+  "displayName": "YAMD",
+  "description": "Syntax highlighting for YAMD (Yet Another MarkDown) — an indentation-based markup language that compiles to an element IR.",
+  "version": "0.1.0",
+  "publisher": "yamd",
+  "license": "SEE LICENSE IN ../../LICENSE",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "keywords": [
+    "yamd",
+    "markup",
+    "racket",
+    "scribble"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "yamd",
+        "aliases": [
+          "YAMD",
+          "yamd"
+        ],
+        "extensions": [
+          ".yamd"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "yamd",
+        "scopeName": "source.yamd",
+        "path": "./syntaxes/yamd.tmLanguage.json",
+        "embeddedLanguages": {
+          "meta.embedded.block.racket": "racket"
+        }
+      }
+    ],
+    "configurationDefaults": {
+      "[yamd]": {
+        "editor.insertSpaces": false,
+        "editor.tabSize": 2,
+        "editor.detectIndentation": false
+      }
+    }
+  }
+}

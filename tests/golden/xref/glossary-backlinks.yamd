@@ -1,0 +1,8 @@
+#use(std/xref)
+
+#def("vm"){virtual machine}{a sandboxed execution environment}
+#def("gc"){garbage collector}{reclaims unreachable memory}
+
+The #ref("gc") pauses while the #ref("vm") keeps a #ref("vm") warm.
+
+#glossary

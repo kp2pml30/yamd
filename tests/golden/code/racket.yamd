@@ -1,0 +1,4 @@
+#use(std/code)
+#code(lang: "racket")
+	(define (sq x) ; square it
+		(* x x))

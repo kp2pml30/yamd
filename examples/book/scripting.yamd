@@ -1,0 +1,39 @@
+#use(std/code)
+#use(std/math: asciimath)
+
+#section{Scripting}::
+
+Schedulers embed in two hosts. From Python, compute the airmass yourself —
+the code body is raw, so #tt{##}, braces and comments are all literal:
+
+#code(lang: "python")
+	import math
+
+	def airmass(alt_deg): # Pickering (2002)
+		h = math.radians(alt_deg)
+		return 1 / math.sin(h + math.radians(244 / (165 + 47 * alt_deg ** 1.1)))
+
+The Godot companion app drives the mount from GDScript:
+
+#code(lang: "gdscript")
+	extends Node
+
+	signal slew_finished(target)
+
+	func slew(target: String) -> void:
+		print("slewing to %s" % target)
+		emit_signal("slew_finished", target)
+
+Pass #code{--dry-run} to print the plan without moving the dish.
+
+The airmass at altitude #m{h} is roughly #m{1/sin(h)}; the scheduler uses
+the full form:
+
+#math
+	X = 1/(sin(h + 244/(165 + 47 h^(1.1))))
+
+#section{Units}::
+
+Altitude #m{h} is in degrees throughout; airmass #m{X} is dimensionless.
+This subsection also shows the index toctree's #tt{depth: 2} doing real
+work: it is pruned from the multi-file nav (level 3) but stays in #tt{##toc}.

@@ -1,0 +1,45 @@
+#use(std/table, std/math: asciimath, std/code)
+
+#(define price 42)
+The item costs #(price)¥. A literal hash: ##42 is not a call.
+
+#; a line comment to end of line
+#;{ a block comment { with nested braces } spanning
+multiple lines }
+# this whole line after hash-space is also a comment
+
+#section{Motivation}::
+
+This paragraph is inside the section thanks to the hanging block.
+#note: rest of this line is the body.
+
+#list(style: "1")
+	#item: First
+	#item
+		Second item, multi-line.
+		#list(style: "a")
+			#item: nested
+
+Inline #emph{emphasis}, #strong{bold} and #tt{code = 1}.
+Nested body #p{price is #(price), doubled #(* 2 price)}.
+
+A pathological inline raw body: #tt|{ unbalanced } brace }| and
+#tt|==={ even }| inside }===| via an extended fence.
+
+Inline math #m{sum_(i=0)^n i^2} inside a paragraph.
+
+#math
+	sum_(i=0)^n i^2 = n(n+1)(2n+1)/6
+
+#code(lang: python)
+	def f(): # not a comment here, this body is raw
+		return {"x": 1}
+
+#(for ([x (list 1 2 3)])
+	#p{item #(x)})
+
+#table(header: 1)
+	#row
+		#cell: Name
+		#cell: Role
+	#row{Kiril}{infra}

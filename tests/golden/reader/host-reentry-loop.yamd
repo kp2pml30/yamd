@@ -1,0 +1,2 @@
+#use(std/base)
+#(apply para (for/list ([x (quote (1 2 3))]) #emph{#(x) }))

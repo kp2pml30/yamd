@@ -1,0 +1,8 @@
+#use(std/table)
+#table(header: 1)
+	#row
+		#cell: Name
+		#cell: Role
+	#row
+		#cell: Kiril
+		#cell: infra

@@ -1,0 +1,6 @@
+#use(std/code)
+#code(lang: "python")
+	def greet(name):
+	    if name:
+	        return name
+	    return "world"

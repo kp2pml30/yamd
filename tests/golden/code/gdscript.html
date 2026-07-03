@@ -1,0 +1,21 @@
+<pre><code class="language-gdscript"><span class="tok-keyword">extends</span> Node2D
+
+<span class="tok-keyword">signal</span> health_changed(old_value, new_value)
+
+<span class="tok-annotation">@export</span> <span class="tok-keyword">var</span> speed := <span class="tok-number">200.0</span>
+<span class="tok-annotation">@export_range</span>(<span class="tok-number">0</span>, <span class="tok-number">100</span>) <span class="tok-keyword">var</span> health := <span class="tok-number">100</span>
+<span class="tok-annotation">@onready</span> <span class="tok-keyword">var</span> sprite = <span class="tok-nodepath">$Sprite2D</span>
+<span class="tok-keyword">var</span> target := <span class="tok-nodepath">%Player</span>
+<span class="tok-keyword">var</span> anim := <span class="tok-string">&amp;"idle"</span>
+<span class="tok-keyword">var</span> dead := <span class="tok-constant">false</span>
+
+<span class="tok-keyword">func</span> _ready() -&gt; <span class="tok-keyword">void</span>:
+    <span class="tok-comment"># clamp at start</span>
+    <span class="tok-keyword">var</span> flags = <span class="tok-number">0x1F</span> | <span class="tok-number">0b0010</span>
+    <span class="tok-keyword">if</span> health &gt; <span class="tok-number">0</span> <span class="tok-keyword">and</span> <span class="tok-keyword">not</span> dead:
+        emit_signal(<span class="tok-string">"health_changed"</span>, <span class="tok-number">0</span>, health)
+    <span class="tok-keyword">match</span> speed:
+        <span class="tok-number">200.0</span>:
+            print(<span class="tok-string">"fast"</span>)
+        _:
+            <span class="tok-keyword">pass</span></code></pre>

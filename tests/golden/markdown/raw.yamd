@@ -1,0 +1,4 @@
+#use(std/html)
+Inline #html{<abbr title="x">HTML</abbr>} joins the flow.
+
+#html-block{<div class="note">A raw HTML block.</div>}

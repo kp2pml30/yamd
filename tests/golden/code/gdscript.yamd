@@ -1,0 +1,23 @@
+#use(std/code)
+#code(lang: "gdscript")
+	extends Node2D
+
+	signal health_changed(old_value, new_value)
+
+	@export var speed := 200.0
+	@export_range(0, 100) var health := 100
+	@onready var sprite = $Sprite2D
+	var target := %Player
+	var anim := &"idle"
+	var dead := false
+
+	func _ready() -> void:
+	    # clamp at start
+	    var flags = 0x1F | 0b0010
+	    if health > 0 and not dead:
+	        emit_signal("health_changed", 0, health)
+	    match speed:
+	        200.0:
+	            print("fast")
+	        _:
+	            pass

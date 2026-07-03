@@ -1,0 +1,6 @@
+#use(std/xref)
+#use(std/toctree)
+#def("w"){widget}{Thing.}
+
+#toctree
+	child.yamd

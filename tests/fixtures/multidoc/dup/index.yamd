@@ -1,0 +1,4 @@
+#use(std/toctree)
+#toctree
+	child.yamd
+	child.yamd

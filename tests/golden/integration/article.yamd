@@ -1,0 +1,31 @@
+#use(std/xref)
+#use(std/pipe-table)
+#use(std/code)
+#use(std/math: asciimath)
+
+#toc
+
+#section{Release Notes}{This release ships the #ref("plugins"){plugin system}
+and a proper #ref("toc-anchor"). Complexity of the merge step stays
+#m{O(n log n)}, and inline #code{#use} directives load each plugin.}
+
+#section{Highlights}{The #def("plugins"){plugins}{self-contained host modules}
+are now first class, and the #def("toc-anchor"){table of contents}{a generated
+section index} links every heading.}
+
+#section{Reference tables}::
+
+Supported table shapes at a glance:
+
+#ptable
+	Shape    | Source   | Cells
+	nested   | #table   | markup
+	pipe     | #ptable  | plain text
+
+A quick Racket sample:
+
+#code(lang: "racket")
+	(define (sq x) (* x x)) ; squares its arg
+	(map sq '(1 2 3))
+
+#glossary

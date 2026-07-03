@@ -1,0 +1,7 @@
+#use(std/xref)
+A #ref("gadget") mentioned before its definition.
+
+#use(std/include)
+#include("_defs.yamd")
+
+#glossary

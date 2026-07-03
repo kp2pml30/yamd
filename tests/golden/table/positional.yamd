@@ -1,0 +1,5 @@
+#use(std/table)
+#table(header: 1)
+	#row{Name}{Role}
+	#row{Kiril}{infra}
+	#row{Ann}{web}

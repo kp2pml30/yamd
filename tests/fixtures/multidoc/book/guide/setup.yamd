@@ -1,0 +1,8 @@
+#use(std/toctree)
+#use(std/xref)
+#section{Setup}::
+
+Needs a #ref("widget").
+
+#toctree
+	advanced.yamd

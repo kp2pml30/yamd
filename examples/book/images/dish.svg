@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 90" width="120" height="90">
+  <title>a radio dish sketched in two strokes</title>
+  <path d="M20 30 A 45 45 0 0 1 95 55" fill="none" stroke="#345" stroke-width="4" stroke-linecap="round"/>
+  <path d="M55 48 L 48 82 M 40 82 L 68 82" fill="none" stroke="#345" stroke-width="4" stroke-linecap="round"/>
+</svg>

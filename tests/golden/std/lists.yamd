@@ -1,0 +1,8 @@
+#list(style: "1")
+	#item: First
+	#item
+		Second, with a nested bulleted list:
+		#list
+			#item: nested a
+			#item: nested b
+	#item: Third

@@ -1,0 +1,2 @@
+#use(std/math: asciimath)
+#m{a/b + (x+1)/(2y)}

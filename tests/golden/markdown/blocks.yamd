@@ -1,0 +1,9 @@
+A short intro paragraph.
+
+#blockquote
+	A longer quotation spanning
+	its own indented block.
+
+#hr
+
+An image #image("cat.png" alt: "a napping cat") shown inline.

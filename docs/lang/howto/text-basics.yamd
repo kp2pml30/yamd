@@ -1,0 +1,40 @@
+#use(std/code)
+
+#section{Text basics}::
+
+Plain text is content; consecutive lines join into one paragraph and a blank
+line starts a new one. The inline markup below comes from #code{std/base},
+which is loaded by default — no #code{#use} needed.
+
+#code(lang: "plain")
+	First paragraph, line one.
+	First paragraph, line two.
+
+	Second paragraph after a blank line.
+
+	#para: An explicit paragraph, standing on its own.
+
+	#emph{emphasis}, #strong{bold}, and #tt{inline code}.
+
+	Visit #link("https://example.com"){our homepage} for details.
+
+Live:
+
+First paragraph, line one.
+First paragraph, line two.
+
+Second paragraph after a blank line.
+
+#para: An explicit paragraph, standing on its own.
+
+#emph{emphasis}, #strong{bold}, and #tt{inline code}.
+
+Visit #link("https://example.com"){our homepage} for details.
+
+Corner cases:
+
+#list
+	#item: Trailing spaces on a content line are literal output — they are preserved, not stripped.
+	#item: A whitespace-only line counts as blank (a paragraph break).
+	#item: #code{#link} takes the URL as a host-language string argument and the link text as the body; a non-string URL is an error.
+	#item: Markup nests freely — #code|{#link("…"){#emph{click #strong{here}}}}| is fine.

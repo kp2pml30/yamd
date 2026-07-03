@@ -1,0 +1,55 @@
+#use(std/include)
+#use("ext/admonition.rkt")
+
+#section{Extending Stargazer}::
+
+A YAMD document is a Racket program. #tt{##(...)} on its own line is a host
+statement; inline it is an expression whose value becomes content. And
+#tt{## } opens a line comment, #tt{##;{...}} a block one — one of each hides
+right here in the source, leaving no trace in the output:
+
+# a line comment: dropped by the reader
+#;{a block comment; braces must balance,
+so it may span lines}
+
+#(define release "2.3")
+
+This handbook tracks Stargazer #(release).
+
+Host code can generate content — #tt{##para{...}} re-enters markup from
+inside the loop, and #tt{##(m)} inside that body sees the loop variable:
+
+#(define messiers (quote ("M31" "M42" "M57")))
+#(for/list ([m messiers])
+	#para{Target #(m) is up tonight.})
+
+The same trick builds list items (note: in host code, #tt{list} is YAMD's
+#tt{##list} function, so plain data wants #tt{quote}):
+
+#list(style: "a")
+	#(for/list ([m messiers]) #item{#(m)})
+
+This chapter also loads a #emph{project-local} plugin with a
+document-relative #tt{##use} path — see #tt{ext/admonition.rkt}:
+
+#admonition(kind: "warning"){A plugin runs with full host power. Only
+#tt{##use} code you trust.}
+
+Press #keys{Ctrl+Shift+P} to open the command palette; #keys{F5} re-plans.
+The #tt{##keys} body is parsed by the plugin's custom body reader at read
+time, not by the markup parser.
+
+#section{Scoped context}::
+
+#fork-context::
+
+#(context-set! 'admonition-kind "tip")
+
+Inside this #tt{##fork-context} block the context key set above makes every
+bare #tt{##admonition} default to a tip; the setting dies with the block.
+
+#admonition{Like this one.}
+
+#admonition{And this one — still a tip, no #tt{kind:} argument.}
+
+#include("common/colophon.yamd")

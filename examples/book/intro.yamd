@@ -1,0 +1,33 @@
+#section{Getting started}::
+
+Stargazer schedules telescope time from a plain-text queue. A queue entry
+names a target and a priority; everything else — weather windows, moon
+phase, horizon masks — is computed for you. Releases live on the
+#link("https://example.org/stargazer"){project page}; questions go to the
+##stargazer channel (a literal #tt{##} escapes the sigil).
+
+You will need:
+
+#list
+	#item: a queue file (indentation is #emph{tabs}, like this book's source)
+	#item
+		a schedule output format, one of:
+		#list(style: "1")
+			#item: plain text
+			#item: HTML
+			#item: iCal
+
+Horizon masks are tiny expressions; because this one contains an unbalanced
+brace, its inline code uses a fence: #tt|{mask { alt > 20}|.
+
+#blockquote{Astronomy compels the soul to look upwards. — Plato}
+
+#hr
+
+#image("images/dish.svg" alt: "a radio dish sketched in two strokes")
+
+#section{First light}::
+
+This section is written with a second hanging #tt{::} #emph{inside} the
+chapter's own hanging block, so it nests one level deeper and renders one
+heading level down — depth comes from nesting, never from a level argument.

@@ -1,0 +1,3 @@
+#(raw 'typst "#pagebreak()" #t)
+
+Inline #(raw 'typst "#strong[hi]") passes through verbatim.

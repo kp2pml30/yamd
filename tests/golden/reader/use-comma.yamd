@@ -1,0 +1,4 @@
+#use(std/html, "../../fixtures/kv.rkt")
+inline #html{<b>raw</b>} and
+#kv
+	k: v

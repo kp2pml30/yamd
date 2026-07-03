@@ -1,0 +1,6 @@
+#use(std/code)
+#code(lang: "python")
+	def f(x):  # not a comment call
+		return {"y": x}
+
+Inline #code{a = [1, 2]} in a sentence.

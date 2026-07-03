@@ -1,0 +1,37 @@
+#use(std/code)
+#use(std/html)
+
+#section{Backends}::
+
+Functions emit an element IR, not HTML strings; a pluggable backend
+serializes it. #code{--backend} selects #code{html} (default, the reference
+serialization), #code{markdown} (CommonMark/GFM; constructs with a Markdown
+form render natively, the rest falls back to embedded HTML), or #code{typst}
+(structural mapping; AsciiMath becomes Typst math).
+
+Raw escape hatches are per-backend functions, clearly non-portable.
+For HTML, #code{#use(std/html)} gives inline #code{#html} and block-level
+#code{#html-block}:
+
+#code(lang: "plain")
+	Prose with inline #html{<strong>raw</strong>} that stays in the paragraph.
+
+	#html-block{<div class="note">a block-level div</div>}
+
+Live:
+
+Prose with inline #html{<strong>raw</strong>} that stays in the paragraph.
+
+#html-block{<div class="note">a block-level div</div>}
+
+The difference: inline raw joins the surrounding paragraph flow;
+#code{#html-block} breaks the paragraph and stands alone (a #code{<div>}
+inside a #code{<p>} would be invalid HTML).
+
+Corner cases:
+
+#list
+	#item: A backend #strong{errors} on raw nodes addressed to a different backend, never skips them silently — this page renders only with the HTML backend by design. Portable documents avoid raw escapes entirely.
+	#item: The typst raw form is host-level: #code|={#(raw 'typst "#pagebreak()" #t)}=| (the trailing #code{#t} marks it block-level).
+	#item: The markdown backend drops presentation-only attributes (#code{id}, #code{class}); the typst backend drops #code{id}s and renders fragment links as plain URL links — cross-page anchor targets in those backends are a documented limitation.
+	#item: Unresolved delayed nodes are also a backend error; backends only ever see resolved IR.

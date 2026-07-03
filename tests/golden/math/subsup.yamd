@@ -1,0 +1,2 @@
+#use(std/math: asciimath)
+#m{x^2 + y_i + z_(i)^(2n)}

@@ -1,0 +1,38 @@
+#use(std/code)
+
+#section{Contexts}::
+
+Host-language tweaks live in #strong{contexts} — a chain of auto-scoped
+frames, dynamically scoped. Reads (#code{context-ref}) search the chain
+innermost-out; writes (#code{context-set!}) go to the topmost frame, so a
+fork shadows rather than clobbers. Forks happen in exactly two ways:
+#code{#fork-context::} forks for the rest of the enclosing block, and
+block-bodied functions that opt in (like #code{#section}) fork implicitly.
+
+The header-depth mechanism is contexts at work: #code{#section} forks the
+context and increments #code{'header-depth}, so nesting depth determines
+h1/h2/… with no explicit levels. The current value is readable from host
+code:
+
+#code(lang: "plain")
+	Depth here: #(context-ref (quote header-depth) 0).
+
+	#fork-context::
+
+	Inside a forked context; writes here die with the fork.
+
+Live (this page's own title section puts us at depth 1):
+
+Depth here: #(context-ref (quote header-depth) 0).
+
+#fork-context::
+
+Inside a forked context; writes here die with the fork.
+
+Corner cases:
+
+#list
+	#item: Contexts are dynamically scoped — a fork is visible to everything evaluated inside it, including included files.
+	#item: #code{#fork-context::} is an ordinary stdlib function with a lazy body, not reader syntax; the reader itself never forks.
+	#item: Delayed (pass-2) procedures run after all contexts are gone — a plugin must capture context values at creation time, never call #code{context-ref} inside a delayed proc.
+	#item: In a doc-set, #code{#include} runs the child under a fork (it sees your #code{'header-depth}); a #code{#toctree} child gets #code{'header-depth} reset to 0 — it is a standalone document.

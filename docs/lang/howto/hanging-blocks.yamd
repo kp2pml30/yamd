@@ -1,0 +1,35 @@
+#use(std/code)
+
+#section{Hanging blocks (::)}::
+
+#code{::} at the end of a call line folds the #strong{rest of the enclosing
+block} — same indentation level, until dedent or end of file — into the
+call's body, without indenting it. The title of this very page uses it:
+#code|{#section{Hanging blocks (::)}::}| captures the rest of the file.
+
+#code(lang: "plain")
+	#blockquote
+		intro
+		#emph::
+		alpha
+		#strong::
+		beta
+
+Live (the #code{::}s capture the rest of the blockquote's indented block; the
+later #code{::} nests inside the earlier one):
+
+#blockquote
+	intro
+	#emph::
+	alpha
+	#strong::
+	beta
+
+Corner cases:
+
+#list
+	#item: Nothing may follow #code{::} on the same line — that is a reader error.
+	#item: It is a pure reader-level transform; evaluation sees an ordinary body.
+	#item: Recursive by construction: a later #code{::} at the same level captures the remainder of the block it now lives in, so it nests inside the earlier one. There is no flat "until the next same-name #code{::}" variant.
+	#item: At top level, #code{::} means the rest of the file — the idiomatic page shape is #code|{#section{Title}::}| at the top.
+	#item: #code{::} in plain prose is just text; only a call directly followed by #code{::} is special. See #code{std}::vector — rendered literally.

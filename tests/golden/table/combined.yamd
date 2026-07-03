@@ -1,0 +1,7 @@
+#use(std/table)
+A table mixing a nested header row with positional body rows, with #emph{markup} in a cell.
+#table(header: 1)
+	#row
+		#cell: Name
+		#cell: Role
+	#row{#emph{Kiril}}{infra}

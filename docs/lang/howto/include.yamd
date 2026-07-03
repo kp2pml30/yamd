@@ -1,0 +1,39 @@
+#use(std/code)
+#use(std/include)
+
+#section{Including files (##include)}::
+
+#code{#use(std/include)} provides #code{#include("file.yamd")} — a
+typst-like #strong{eval-time content splice}: the child file is evaluated
+when the call runs (during the collect pass) and its content splices into
+the call site. It is not a textual paste.
+
+#code(lang: "plain")
+	Before the include.
+
+	#include("_include-fragment.yamd")
+
+	After the include.
+
+Live:
+
+Before the include.
+
+#include("_include-fragment.yamd")
+
+After the include.
+
+Semantics of the sub-file:
+
+#list
+	#item: #strong{Fresh namespace} — host #code{#(define …)}s and #code{#use}s do not leak in either direction.
+	#item: #strong{Forked context} — the child #emph{reads} the includer's context (a file included under a #code{#section} sees #code{'header-depth}, so its sections nest one level deeper, as the fragment's section above does), but its writes die with the fork.
+	#item: #strong{Shared info} — the child's #code{#def}s resolve the parent's #code{#ref}s and vice versa; anchors stay unique across the set.
+
+Corner cases:
+
+#list
+	#item: Paths are relative to the #emph{including} file; a missing file is an explicit error naming both the written and the resolved path.
+	#item: Include cycles are explicit errors printing the whole chain; including the same file twice #emph{sequentially} is legal (though duplicate #code{#def}s will error as always).
+	#item: Errors inside the child report the child's own file and line.
+	#item: Output is identical in single- and multi-file builds — included content is simply part of the page it lands on. Contrast with #code{#toctree}, whose children are standalone documents.

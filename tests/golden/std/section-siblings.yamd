@@ -1,0 +1,2 @@
+#section{Alpha}{Intro to alpha. #section{Alpha One}{A nested section.}}
+#section{Beta}{A sibling top-level section, back to h1.}

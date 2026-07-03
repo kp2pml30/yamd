@@ -1,0 +1,5 @@
+#use(std/html)
+#html
+	<span>#not-a-call</span>
+	if (x<1) { y } else { z }
+	trailing ) } brace

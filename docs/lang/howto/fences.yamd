@@ -1,0 +1,28 @@
+#use(std/code)
+
+#section{Fences}::
+
+Fences are alternative inline-body delimiters for content with unbalanced
+braces (Scribble-style). An inline body may be written
+#code|={|{ … }|}=| or, when the content itself contains #code|={}|}=|, with
+an extended fence #code|={|=={ … }==|}=| — the run of #code{=} in opener and
+closer must match. The scan is verbatim: no #code{#} recognition, no brace
+counting.
+
+#code(lang: "plain")
+	plain #tt|{ a } b }| end
+	ext #tt|=={ has }| inside }==| done
+	raw #tt{normal} too
+
+Live:
+
+plain #tt|{ a } b }| end
+ext #tt|=={ has }| inside }==| done
+raw #tt{normal} too
+
+Corner cases:
+
+#list
+	#item: Opener #code|={|=={}=| closes only at #code|={}==|}=|, never at #code|={}|}=| — pick a #code{=} run that does not occur in the content.
+	#item: Fences work for any inline body kind — markup, raw, or custom — and also in host-mode re-entry: #code|={#(para #tt|{ raw } here }|)}=|.
+	#item: Block raw bodies never need fences; an indented raw block is terminated only by dedent, with no delimiter scanning at all.

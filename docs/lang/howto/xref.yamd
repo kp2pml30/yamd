@@ -1,0 +1,53 @@
+#use(std/code)
+#use(std/xref)
+
+#section{Cross-references}::
+
+#code{#use(std/xref)} provides #code{#def} / #code{#ref} / #code{#glossary} /
+#code{#toc} — the two-pass showcase. #code{#def} records at collect time;
+#code{#ref}, #code{#glossary} and #code{#toc} resolve in the second pass, so
+document order does not matter: a #code{#ref} may precede its #code{#def}.
+
+#code(lang: "plain")
+	A deterministic #ref("vm") runs the program — referenced before it is defined.
+
+	We define #def("vm"){virtual machine}{a sandboxed execution environment}.
+
+	#glossary
+
+Live:
+
+A deterministic #ref("vm") runs the program — referenced before it is defined.
+
+We define #def("vm"){virtual machine}{a sandboxed execution environment}.
+
+#glossary
+
+(In this how-to set all pages share one info table, so the glossary above
+also lists the RFC 2119 keywords registered by that page — cross-file
+resolution is the feature, not a bug.)
+
+Spelling of #code{#def}: the term is the #strong{first} body, the definition
+the second — #code|{#def("vm"){term}{definition}}| or
+#code|{#def("vm"){term}::}| with the definition as the hanging block. A
+term-only #code|{#def("vm"){term}}| is allowed (empty definition). The
+#code|{#def(id){term}: definition}| spelling from the design sketch is
+#strong{not} a form — a call cannot combine a brace body with a
+#code{: rest-of-line} body.
+
+#code{#toc} renders the section tree the same way (delayed, order-independent):
+
+#code(lang: "plain")
+	#toc
+
+It is not used live here because a #code{#toc} reflects the #strong{entire}
+doc-set — it would embed this whole how-to's outline into the page.
+
+Corner cases:
+
+#list
+	#item: Ids are host code inside #code{(…)} — quote them: #code{#ref("vm")} or #code{#ref('vm)}; a bare #code{#ref(vm)} is a variable reference.
+	#item: A dangling #code{#ref} is an error at resolve time, never silent empty text; a duplicate #code{#def} id errors at collect time.
+	#item: #code|{#ref(id){custom text}}| overrides the link text (default is the definition's term).
+	#item: The glossary lists every def with backlinks to each ref site.
+	#item: In a doc-set the info table is shared, so a #code{#def} in one file resolves a #code{#ref} in another — anchors stay unique by construction.

@@ -1,0 +1,29 @@
+#use(std/rfc2119)
+#use(std/footnote)
+
+#section{Scheduling protocol}::
+
+#rfc2119-boilerplate
+
+A scheduler #ref('must) reject a queue entry naming an unknown catalog
+object and #ref('must-not) reorder entries of equal priority. It
+#ref('should) prefer targets near culmination#note{Culmination is the moment
+a target crosses the local meridian — the best airmass it will get.} and
+#ref('may) split long exposures across nights; draft plans are
+#ref('optional).
+
+An #def("plan"){observation plan}{a night's ordered target list with start
+times, recomputed whenever the queue changes} is the scheduler's only
+output. The handbook's index referenced this #ref("plan") before the
+definition existed — cross-references are order-independent, across
+files.#note{The whole document set shares one info table during the collect
+pass, which is also what keeps anchors and section numbers unique set-wide.}
+
+#section{Terms}::
+
+The glossary lists every defined term with backlinks to each reference site
+— including the RFC 2119 keywords the plugin pre-declares:
+
+#glossary
+
+#notes

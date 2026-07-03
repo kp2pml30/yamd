@@ -1,0 +1,280 @@
+#lang racket/base
+;; Standard library, minimal core set. Everything here is an
+;; ordinary function from Content arguments to IR; `section`/`fork-context`
+;; take LAZY bodies (thunks) so they can force them inside a forked context
+;; (see docs/architecture.md "Contexts"). The `yamd-reader` submodule at the bottom
+;; registers those two as lazy body readers.
+
+(require "../runtime.rkt"
+         (only-in "../decode.rkt" para-break?)
+         (only-in racket/list append-map))
+
+(provide emph strong tt
+         para
+         (rename-out [yamd-link link])
+         image
+         blockquote
+         hr
+         section
+         (rename-out [yamd-list list])
+         item
+         fork-context)
+
+;; ---------------------------------------------------------------------------
+;; Inline text
+
+(define (emph . bodies)
+  (apply elem 'em bodies))
+
+(define (strong . bodies)
+  (apply elem 'strong bodies))
+
+(define (tt . bodies)
+  (apply elem 'code bodies))
+
+;; #link("https://…"){text} — the URL is the first (host) argument, the link
+;; text is the body. Renders an <a href="…"> anchor (inline).
+(define (yamd-link url . bodies)
+  (unless (string? url)
+    (error 'link "url must be a string, got ~e" url))
+  (apply elem 'a #:attrs (list (cons 'href url)) bodies))
+
+;; #image("url", alt: "description") — an inline <img>. Both the src and the
+;; alt text are required. img is a void element (no body).
+;;
+;; alt is mandatory ON PURPOSE, not defaulted: HTML requires it for validity,
+;; and a missing alt is invisible to sighted authors while breaking screen
+;; readers, search indexers and no-image fallbacks. Rather than silently emit
+;; an inaccessible <img>, we raise a located error. For a genuinely decorative
+;; image that should be *skipped* by assistive tech, pass an explicit empty
+;; alt: "" — that is the accessible way to say "no textual content", and the
+;; explicitness keeps it a deliberate choice, not an oversight.
+(define (image url #:alt [alt #f])
+  (unless (string? url)
+    (error 'image "url must be a string, got ~e" url))
+  (unless alt
+    (error 'image
+           "image requires alt: text for accessibility (screen readers, indexing); pass alt: \"\" for a purely decorative image"))
+  (unless (string? alt)
+    (error 'image "alt must be a string, got ~e" alt))
+  (elem 'img #:attrs (list (cons 'src url) (cons 'alt alt))))
+
+;; ---------------------------------------------------------------------------
+;; Blocks
+
+;; #quote{…} — a <blockquote>. Exported as `blockquote`, NOT `quote`, on
+;; purpose: `quote` is a core Racket special form, and the reader emits a
+;; call form `(name body …)`, so `#quote{…}` would read as `(quote (yamd-body
+;; …))` — the quote special form producing the literal list, never calling
+;; us. Shadowing core `quote` in the document namespace would both be fragile
+;; (rebinding a special form) and break legitimate host use like `#('foo)` /
+;; `#(quote …)`, so we take a plain, unambiguous name instead. blockquote is
+;; a block tag (decode.rkt), so decode-flow leaves it untouched. It forks no
+;; context and needs no lazy body, so it is a plain (non-lazy) function.
+(define (blockquote . bodies)
+  (apply elem 'blockquote bodies))
+
+;; #hr — a horizontal rule. Zero-arg, void element (no body, no args). Block
+;; tag, so decode-flow keeps it out of paragraphs.
+(define (hr)
+  (elem 'hr))
+
+;; Explicit paragraph. `#para{…}` / `#para: …` / `#para` + block. Emits a <p>;
+;; because <p> is a block tag, decode-flow leaves it untouched (it is not
+;; re-grouped and not swallowed into a surrounding paragraph).
+(define (para . bodies)
+  (apply elem 'p bodies))
+
+;; ---------------------------------------------------------------------------
+;; Sections (auto header depth via context nesting)
+;;
+;; `#section` is registered LAZY: it receives its bodies as thunks. The FIRST
+;; body is the section title; any REMAINING bodies are its content. Canonical
+;; forms (all supported by the reader):
+;;   #section{Title}                 heading only, no content
+;;   #section{Title}::               title + hanging content (rest of block)
+;;   #section{Title}{inline content} title + inline content
+;; (An indented block body would require the call to be the only thing on its
+;; line — `#section` alone, with the title as the block's first content — so
+;; a `{Title}` + indented block combination is a reader error, not a form.)
+;; Header level = context nesting depth: a top-level section is <h1>; a section
+;; nested inside another section's content is <h2>; and so on through <h6>.
+;; Nesting past 6 (i.e. depth ≥ 7) is an explicit error. Depth is tracked in
+;; the context key 'header-depth; forking per section is what makes nesting
+;; determine the level (docs/architecture.md "Contexts").
+;;
+;; ---- Section info for #toc ----------------------
+;; At COLLECT time (sections run during pass 1; they are NOT delayed nodes, so
+;; the depth is captured directly here, never inside a delayed proc) each
+;; section records itself under the info key documented here:
+;;
+;;   info key:   'sections
+;;   value:      a list of ENTRIES, accumulated newest-first (info-add! conses).
+;;               A consumer (#toc) must (reverse …) to get document order.
+;;   entry:      (list depth anchor title)
+;;                 depth : exact integer in 1..6 — the heading level
+;;                 anchor: string — the heading element's `id` attribute value
+;;                         (a link target; prefix "#" to build an href)
+;;                 title : Content — the section title (the heading's children),
+;;                         to render as the TOC link text
+;;
+;; Anchors are "sec-<n>" with <n> a per-document counter kept under the private
+;; info key 'yamd-section-counter (info-set!/info-ref, single-valued).
+(define (section . body-thunks)
+  (when (null? body-thunks)
+    (error 'section "a section requires a title body, e.g. #section{Title}"))
+  (with-forked-context
+    (define depth (context-update! 'header-depth add1 0))
+    (when (> depth 6)
+      (error 'section
+             "section nested too deep: header level ~a exceeds h6 (max nesting is 6)"
+             depth))
+    ;; Assign the anchor and record the #toc entry BEFORE forcing the content,
+    ;; so nested sections (forced inside the content) get later anchors and are
+    ;; recorded after this one — keeping both in document order (the 'sections
+    ;; list, newest-first, reverses to document order).
+    (define anchor (next-section-anchor))
+    (define title ((car body-thunks)))
+    (define i (current-info))
+    (when i
+      (info-add! i 'sections (list depth anchor title)))
+    (define content (map (lambda (t) (t)) (cdr body-thunks)))
+    (elem 'section
+          (elem (heading-tag depth) #:attrs (list (cons 'id anchor)) title)
+          content)))
+
+(define (heading-tag depth)
+  (string->symbol (string-append "h" (number->string depth))))
+
+(define (next-section-anchor)
+  (define i (current-info))
+  (cond
+    [i
+     (define n (add1 (info-ref i 'yamd-section-counter 0)))
+     (info-set! i 'yamd-section-counter n)
+     (string-append "sec-" (number->string n))]
+    ;; No info table (e.g. a unit test calling section directly): still emit
+    ;; a unique anchor (gensym — not stable across runs) rather than crashing.
+    [else (symbol->string (gensym 'sec-))]))
+
+;; ---------------------------------------------------------------------------
+;; Lists
+
+;; #list(style: s){#item…} — an <ul> (no style) or <ol type=s> (style in
+;; 1/a/A/i/I). Direct children must be #item (<li>) elements; structural
+;; whitespace and paragraph breaks between items are dropped, anything else is
+;; an explicit error (no silent coercion). Nesting is by putting a #list inside
+;; an #item body.
+(define (yamd-list #:style [style #f] . bodies)
+  (define items (collect-list-items 'list bodies))
+  (cond
+    [(not style) (apply elem 'ul items)]
+    [(ol-type style)
+     => (lambda (type) (apply elem 'ol #:attrs (list (cons 'type type)) items))]
+    [else
+     (error 'list "unknown list style ~s; use one of \"1\" \"a\" \"A\" \"i\" \"I\" (or omit for a bulleted list)"
+            style)]))
+
+(define (ol-type style)
+  (and (member style '("1" "a" "A" "i" "I")) style))
+
+(define (item . bodies)
+  (apply elem 'li bodies))
+
+;; Flattens the body splices and keeps only <li> children; drops whitespace
+;; strings and %para-break markers; errors on any other content.
+(define (collect-list-items who bodies)
+  (for/fold ([acc '()] #:result (reverse acc))
+            ([c (in-list (flatten-content* bodies))])
+    (cond
+      [(and (string? c) (regexp-match? #px"^\\s*$" c)) acc]
+      [(para-break? c) acc]
+      [(and (element? c) (eq? (element-tag c) 'li)) (cons c acc)]
+      [else
+       (error who "list body may only contain #item children, got ~e" c)])))
+
+(define (flatten-content* c)
+  (if (list? c) (append-map flatten-content* c) (list c)))
+
+;; ---------------------------------------------------------------------------
+;; Context forking
+
+;; #fork-context:: — forks the context for the dynamic extent of its body, so
+;; settings made inside the body do not leak out. Registered LAZY so the body
+;; is forced inside the fork.
+(define (fork-context body)
+  (with-forked-context (body)))
+
+;; ---------------------------------------------------------------------------
+;; Lazy body-reader registrations (merged into current-body-readers by the
+;; reader; seeded by eval.rkt since std/base is attached by default).
+
+(module* yamd-reader #f
+  (require "../reader/registry.rkt")
+  (provide body-readers)
+  (define body-readers
+    (hasheq 'section      (body-reader 'markup #t)
+            'fork-context (body-reader 'markup #t))))
+
+(module+ test
+  (require rackunit)
+
+  ;; --- link ---------------------------------------------------------------
+  (check-equal? (yamd-link "https://x" "t")
+                (elem 'a #:attrs '((href . "https://x")) "t"))
+  (check-exn #rx"url must be a string" (lambda () (yamd-link 42 "t")))
+
+  ;; --- image: void img, alt required -------------------------------------
+  (check-equal? (image "cat.png" #:alt "a cat")
+                (elem 'img #:attrs '((src . "cat.png") (alt . "a cat"))))
+  ;; empty alt is the deliberate "decorative" escape hatch — allowed.
+  (check-equal? (image "sep.png" #:alt "")
+                (elem 'img #:attrs '((src . "sep.png") (alt . ""))))
+  (check-exn #rx"image requires alt" (lambda () (image "cat.png")))
+  (check-exn #rx"alt must be a string" (lambda () (image "cat.png" #:alt 42)))
+  (check-exn #rx"url must be a string" (lambda () (image 42 #:alt "x")))
+
+  ;; --- blockquote / hr ----------------------------------------------------
+  (check-equal? (blockquote "quoted") (elem 'blockquote "quoted"))
+  (check-equal? (hr) (elem 'hr))
+
+  ;; --- lists --------------------------------------------------------------
+  (check-equal? (yamd-list (item "a") (item "b"))
+                (elem 'ul (elem 'li "a") (elem 'li "b")))
+  (check-equal? (yamd-list #:style "1" (item "a"))
+                (elem 'ol #:attrs '((type . "1")) (elem 'li "a")))
+  ;; structural whitespace / para-breaks between items are dropped
+  (check-equal? (yamd-list "\n" (item "a") (para-break) "  " (item "b"))
+                (elem 'ul (elem 'li "a") (elem 'li "b")))
+  (check-exn #rx"only contain #item" (lambda () (yamd-list "stray")))
+  (check-exn #rx"unknown list style" (lambda () (yamd-list #:style "z" (item "a"))))
+
+  ;; --- section: title required, depth limit, info capture -----------------
+  (check-exn #rx"requires a title" (lambda () (section)))
+
+  ;; Builds n nested sections; the innermost is at header depth n.
+  (define (build-depth n)
+    (if (<= n 1)
+        (section (lambda () "leaf"))
+        (section (lambda () "t") (lambda () (build-depth (sub1 n))))))
+  (check-not-exn
+   (lambda () (call-with-fresh-context (lambda () (build-depth 6)))))
+  (check-exn #rx"exceeds h6"
+             (lambda () (call-with-fresh-context (lambda () (build-depth 7)))))
+
+  ;; A single top-level section is <h1>, records one 'sections entry, and
+  ;; gets anchor sec-1.
+  (let ([i (make-info)])
+    (define el
+      (parameterize ([current-info i])
+        (call-with-fresh-context (lambda () (section (lambda () "Title"))))))
+    (check-equal? (element-tag el) 'section)
+    (define h (car (element-children el)))
+    (check-equal? (element-tag h) 'h1)
+    (check-equal? (element-attrs h) '((id . "sec-1")))
+    (check-equal? (info-ref i 'sections #f) (list (list 1 "sec-1" "Title"))))
+
+  ;; --- fork-context is output-transparent ---------------------------------
+  (check-equal? (call-with-fresh-context
+                 (lambda () (fork-context (lambda () "body"))))
+                "body"))

@@ -1,0 +1,6 @@
+#use(std/xref)
+
+#toc
+
+#section{Alpha}{Intro to alpha. #section{Alpha One}{A nested subsection.}}
+#section{Beta}{A sibling top-level section.}

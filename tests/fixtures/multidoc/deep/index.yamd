@@ -1,0 +1,9 @@
+#use(std/toctree)
+#section{S1}::
+#section{S2}::
+#section{S3}::
+#section{S4}::
+#section{S5}::
+#section{S6}::
+#toctree
+	child.yamd

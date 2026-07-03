@@ -1,0 +1,9 @@
+An intro paragraph.
+
+#blockquote{A short quotation.}
+
+#blockquote
+	A longer quotation spanning
+	its own indented block.
+
+Back to normal text.

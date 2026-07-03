@@ -1,0 +1,23 @@
+#use(std/html)
+
+#section{Raw HTML escape hatch}::
+
+This page lives outside the handbook on purpose: #tt{std/html} emits raw
+nodes only the HTML backend accepts, so a document using it #emph{cannot}
+render to typst (the backend errors rather than dropping content — the
+tests assert exactly that). Keep raw HTML in leaf documents you only ever
+build as HTML.
+
+Inline form, for phrasing content the IR has no element for:
+#html{<abbr title="Yet Another Markup Dialect">YAMD</abbr>} stays a working
+#tt{<abbr>}.
+
+Block form, for flow content — #tt{##html-block} is a raw body, so tags,
+braces and #tt{##} are all literal:
+
+#html-block
+	<details>
+		<summary>Why not extend the IR instead?</summary>
+		<p>Usually you should — a plugin emitting portable elements works in
+		every backend. The escape hatch is for the rest.</p>
+	</details>

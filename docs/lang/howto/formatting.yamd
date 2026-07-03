@@ -1,0 +1,29 @@
+#use(std/code)
+
+#section{Source formatting}::
+
+The CLI doubles as a conservative, semantics-preserving formatter for
+#code{.yamd} sources. It parses the original and every candidate rewrite with
+the real reader and accepts a change only if the two read to equivalent
+documents — correctness never depends on line heuristics.
+
+#code(lang: "plain")
+	racket -l- yamd/cli --fmt file.yamd            # rewrite in place
+	racket -l- yamd/cli --fmt file.yamd -o out.yamd
+	racket -l- yamd/cli --fmt --check file.yamd    # exit 1 if not formatted (CI)
+
+What it normalizes:
+
+#list
+	#item: CRLF → LF; whitespace-only lines emptied.
+	#item: Runs of 3+ blank lines → 2, outside verbatim regions (raw blocks, fences, multi-line inline bodies are protected).
+	#item: A final newline is guaranteed; a trailing run of blank lines collapses to one blank line — never zero, because a trailing blank is a real paragraph separator when the file is spliced mid-flow by #code{#include}.
+	#item: The space after a leading call's #code{:} body introducer → exactly one space.
+
+Corner cases:
+
+#list
+	#item: Trailing whitespace on content lines is #strong{kept} — in YAMD a text line's trailing spaces are literal output, so the usual strip-trailing-whitespace rule would change the render.
+	#item: Documents that do not parse are reported and never rewritten.
+	#item: #code{--fmt --check} writes nothing; plain #code{--fmt} rewrites in place unless #code{-o} redirects.
+	#item: Blank-line collapses inside a multi-line custom body (e.g. #code{#math}) are only applied when provably render-neutral; otherwise that document's interior blanks are left alone.

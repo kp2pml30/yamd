@@ -1,0 +1,4 @@
+#use(std/xref)
+#section{Intro}::
+
+#def("widget"){widget}{A thing.}

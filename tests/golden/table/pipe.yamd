@@ -1,0 +1,5 @@
+#use(std/pipe-table)
+#ptable
+	Name  | Role  | Since
+	Kiril | infra | 2019
+	Ann   | web   | 2021

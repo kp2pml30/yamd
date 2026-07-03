@@ -1,0 +1,6 @@
+#use(std/xref)
+
+#def("vm"){virtual machine}{Runs #ref("bytecode") deterministically.}
+#def("bytecode"){bytecode}{The instruction stream a #ref("vm") executes.}
+
+#glossary

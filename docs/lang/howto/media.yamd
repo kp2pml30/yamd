@@ -1,0 +1,42 @@
+#use(std/code)
+
+#section{Media and block elements}::
+
+#code{#image}, #code{#blockquote} and #code{#hr} from #code{std/base}.
+#code{#image(url alt: "…")} is inline and #strong{requires} the #code{alt:}
+text; #code{#blockquote} and #code{#hr} are block-level (they break the
+surrounding paragraph).
+
+#code(lang: "plain")
+	Above the rule.
+
+	#blockquote{A short quotation.}
+
+	#blockquote
+		A longer quotation spanning
+		its own indented block.
+
+	#hr
+
+	Here is #image("cat.png" alt: "a napping cat") shown inline.
+
+Live:
+
+Above the rule.
+
+#blockquote{A short quotation.}
+
+#blockquote
+	A longer quotation spanning
+	its own indented block.
+
+#hr
+
+Here is #image("cat.png" alt: "a napping cat") shown inline.
+
+Corner cases:
+
+#list
+	#item: Omitting #code{alt:} is an error, on purpose — a missing alt is invisible to sighted authors while breaking screen readers. For a purely decorative image pass an explicit #code{alt: ""}.
+	#item: The function is #code{#blockquote}, not #code{#quote} — #code{quote} is a Racket special form, and a call named #code{quote} would never reach the library.
+	#item: #code{#hr} is a zero-argument void element: no args, no body.

@@ -1,0 +1,7 @@
+#use(std/toctree)
+#section{Home}::
+
+Body.
+
+#toctree(hidden: #t)
+	a.yamd

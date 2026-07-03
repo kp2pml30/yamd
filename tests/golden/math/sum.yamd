@@ -1,0 +1,2 @@
+#use(std/math: asciimath)
+#m{sum_(i=0)^n i^2}

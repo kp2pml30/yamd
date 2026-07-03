@@ -1,0 +1,101 @@
+================================================================================
+hanging block captures rest of file
+================================================================================
+intro
+#section{Motivation}::
+
+Everything below is inside the section.
+#note: including this.
+--------------------------------------------------------------------------------
+
+(document
+  (text_line
+    (text))
+  (hanging_call
+    (call_name
+      (sigil)
+      (name))
+    (body
+      (brace_open)
+      (text)
+      (brace_close))
+    (body_marker)
+    (hanging_body
+      (text_line
+        (text))
+      (colon_call
+        (call_name
+          (sigil)
+          (name))
+        (body_marker)
+        (body_line
+          (text))))))
+
+================================================================================
+two hanging blocks at the same level nest
+================================================================================
+intro
+#emph::
+alpha
+#strong::
+beta
+--------------------------------------------------------------------------------
+
+(document
+  (text_line
+    (text))
+  (hanging_call
+    (call_name
+      (sigil)
+      (name))
+    (body_marker)
+    (hanging_body
+      (text_line
+        (text))
+      (hanging_call
+        (call_name
+          (sigil)
+          (name))
+        (body_marker)
+        (hanging_body
+          (text_line
+            (text)))))))
+
+================================================================================
+hanging block inside an indented block stops at dedent
+================================================================================
+#emph
+	#strong::
+	inner
+outer
+--------------------------------------------------------------------------------
+
+(document
+  (block_call
+    (call_name
+      (sigil)
+      (name))
+    (block
+      (hanging_call
+        (call_name
+          (sigil)
+          (name))
+        (body_marker)
+        (hanging_body
+          (text_line
+            (text))))))
+  (text_line
+    (text)))
+
+================================================================================
+hanging block with empty body
+================================================================================
+#fork-context::
+--------------------------------------------------------------------------------
+
+(document
+  (hanging_call
+    (call_name
+      (sigil)
+      (name))
+    (body_marker)))

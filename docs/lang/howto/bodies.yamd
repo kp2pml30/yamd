@@ -1,0 +1,39 @@
+#use(std/code)
+#use(std/table)
+
+#section{Bodies}::
+
+A call carries its content as an inline brace body, several brace bodies, or
+a rest-of-line body. The body is markup by default, parsed to Content and
+passed as the call's last argument(s).
+
+Inline #code|{{body}}|, multi-body #code|{#row{a}{b}}| (each brace group is
+one positional argument), and #code{: rest-of-line}:
+
+#code(lang: "plain")
+	#emph{this is emphasized}
+
+	#table
+		#row{Name}{Role}
+		#row{Kiril}{infra}
+
+	#emph: short emphasized text to end of line
+
+Live:
+
+#emph{this is emphasized}
+
+#table
+	#row{Name}{Role}
+	#row{Kiril}{infra}
+
+#emph: short emphasized text to end of line
+
+Corner cases:
+
+#list
+	#item: Brace body XOR colon body: #code|{#name{a}: b}| is not two bodies — a call takes one form or the other.
+	#item: Braces must balance inside #code|{{body}}|; for unbalanced content use a fence (see the fences page).
+	#item: A call with an inline body cannot also take an indented block body — the block form requires the call to be alone on its line.
+	#item: Multi-body works for any function taking several content arguments (#code{#row}, #code{#section}, even #code{#emph}).
+	#item: There must be exactly one space after the #code{:} introducer; the formatter normalizes extra spaces there.

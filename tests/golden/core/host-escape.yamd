@@ -1,0 +1,2 @@
+#(define n (* 6 7))
+The answer is #(n), computed by the host.

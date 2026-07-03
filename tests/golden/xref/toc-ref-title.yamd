@@ -1,0 +1,11 @@
+#use(std/xref)
+
+#def("vm"){virtual machine}{A sandboxed execution environment.}
+
+#toc
+
+#section{The #ref("vm") chapter}::
+
+Body of the chapter mentioning the #ref("vm") again.
+
+#section{Nested #ref("vm") bits}{Deeper.}

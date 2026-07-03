@@ -1,0 +1,2 @@
+#use(std/math: asciimath)
+#m{sqrt(x^2+1) + root(3)(x)}

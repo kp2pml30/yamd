@@ -1,0 +1,7 @@
+#use(std/toctree)
+#section{A}
+
+#toctree
+	b.yamd
+
+#section{Post}

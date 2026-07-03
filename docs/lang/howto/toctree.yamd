@@ -1,0 +1,44 @@
+#use(std/code)
+
+#section{Document sets (##toctree)}::
+
+#code{#use(std/toctree)} provides #code{#toctree} — the sphinx-style
+"manifest in the language". The index document #emph{is} the manifest: its
+#code{#toctree} lists child documents (raw body, one path per non-blank
+line, relative to the current file), and the doc-set graph is discovered by
+evaluating the root. This very how-to is built that way — see
+#code{index.yamd}:
+
+#code(lang: "plain")
+	#use(std/toctree)
+
+	#section{My book}::
+
+	#toctree(numbered: #t depth: 2)
+		intro.yamd
+		guide/setup.yamd
+
+There is no live demo on this page: a document may appear in exactly one
+toctree, and every page here is already claimed by the index. The index's
+own nav #emph{is} the live demo.
+
+Options:
+
+#list
+	#item: #code{depth:} (positive integer) bounds how deep the #strong{nav} recurses; it is ignored when inlining in single-file mode (content is never truncated) and does not bound #code{#toc}.
+	#item: #code{numbered: #t} adds hierarchical section numbers ("1", "1.1", "2") to the children's headings, navs and #code{#toc} entries, in document order, identically in both build modes. Nested toctrees inherit the scheme; sibling numbered toctrees each restart at "1".
+	#item: #code{hidden: #t} registers the children (they build, refs resolve, pages get prev/next/up) but emits no nav at the call site — multi-file only; single-file inlines the content regardless.
+
+Build modes (see the CLI page): #strong{single} inlines each child at its
+marker with headings shifted by the call site's depth; #strong{multi} renders
+a nav of links and one page per document, rewriting cross-page
+#code{#anchor} links.
+
+Corner cases:
+
+#list
+	#item: A toctree child evaluates with #code{'header-depth} reset to 0 — it is a standalone document whose top section is h1 (unlike an #code{#include}d fragment, which inherits depth).
+	#item: A document may appear in exactly one toctree; duplicates, cycles and missing files are explicit errors. File identity is symlink-resolved, so aliased spellings unify.
+	#item: Rendering a toctree document without the builder (plain #code{yamd-file->html}) fails loudly on the internal marker — use the CLI, which always routes through the builder.
+	#item: A numbered document with no heading of its own gets no number; if it also has toctree children, that is an explicit error.
+	#item: An empty toctree body is an error.

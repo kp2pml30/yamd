@@ -1,0 +1,2 @@
+#(require yamd/std/html)
+#(html "<strong>verbatim &amp; raw</strong>")

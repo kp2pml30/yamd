@@ -1,0 +1,49 @@
+#use(std/code)
+
+#section{Calls}::
+
+A call is the only active form in YAMD: #code{#} followed by a name
+(alphanumeric plus #code{-} and #code{/}). Headings, lists, links, tables and
+math are all calls to library functions — never syntax.
+
+The forms:
+
+#list
+	#item: #code{#name} — zero-argument call.
+	#item: #code{#name(args)} — arguments are host (Racket) code.
+	#item: #code|{#name(args){body}}| — plus an inline markup body.
+	#item: #code{#name(args): rest} — body is the rest of the line.
+	#item: #code{#name(args)::} — body is the rest of the enclosing block.
+	#item: #code{#name} alone on a line — body is the following indented block.
+
+Bare call and keyword sugar — inside #code{(args)} an identifier ending in
+#code{:} becomes a keyword argument (#code{style: "1"} reads as
+#code{#:style "1"}); everything else is verbatim host code:
+
+#code(lang: "plain")
+	#hr
+
+	#list(style: "1")
+		#item: First
+		#item: Second
+
+	#image("cat.png" alt: "a napping cat")
+
+Live:
+
+#hr
+
+#list(style: "1")
+	#item: First
+	#item: Second
+
+#image("cat.png" alt: "a napping cat")
+
+Corner cases:
+
+#list
+	#item: #code{(args)} and #code|{{body}}| are each optional and independent.
+	#item: A call takes an inline #code|{{body}}| or a #code{: rest-of-line} body, never both — #code|{#name{a}: b}| does not parse as two bodies.
+	#item: Because #code{(args)} is host code, a bare identifier there is a variable reference — write #code{#ref("vm")}, not #code{#ref(vm)}.
+	#item: Separate multiple arguments with #strong{spaces}, not commas — #code{(args)} is host code, where #code{,} means unquote: #code{#toctree(numbered: #t depth: 2)}. (#code{#use} is the one form that also accepts commas.)
+	#item: #code{#()} is an error (empty host escape, not a call).

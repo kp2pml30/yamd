@@ -1,0 +1,50 @@
+#use(std/xref)
+#use(std/table)
+#use(std/code)
+#use(std/math: asciimath)
+
+#section{YAMD Kitchen Sink}::
+
+This document exercises every plugin at once. See the #ref("ir") and the
+#ref("twopass") sections below — both referenced #emph{before} they are defined.
+
+#toc
+
+#section{Architecture}::
+
+The compiler builds an #def("ir"){element IR}{a tree of tagged nodes the
+backends serialize} rather than emitting HTML strings directly.
+
+#section{Two-pass evaluation}::
+
+We use #def("twopass"){two-pass evaluation}{collect then resolve} so that
+#ref("ir") cross-references resolve regardless of order.
+
+#section{Data}::
+
+A table with a header row and #emph{markup} in a cell:
+
+#table(header: 1)
+	#row
+		#cell: Name
+		#cell: Role
+	#row{#emph{Kiril}}{infra}
+
+#section{Code}::
+
+Raw code keeps its braces and hashes:
+
+#code(lang: "python")
+	def area(r): # circle
+		return {"a": 3.14 * r ** 2}
+
+Inline #code{x = 1} stays verbatim too.
+
+#section{Math}::
+
+The quadratic roots are #m{x = (-b +- sqrt(b^2 - 4a c)) / (2a)}, block form:
+
+#math
+	sum_(i=0)^n i^2 = n(n+1)(2n+1) / 6
+
+#glossary

@@ -1,0 +1,3 @@
+#use(std/toctree)
+#toctree(numbered: #t)
+	mid.yamd

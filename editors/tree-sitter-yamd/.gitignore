@@ -1,0 +1,12 @@
+# Build artifacts — only grammar sources, generated parser, queries and tests
+# are tracked.
+*.so
+*.dylib
+*.dll
+*.wasm
+node_modules/
+build/
+bindings/
+Cargo.lock
+target/
+log.html

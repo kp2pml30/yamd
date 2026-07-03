@@ -1,0 +1,6 @@
+#use(std/include)
+#include("part.yamd")
+
+Middle.
+
+#include("part.yamd")

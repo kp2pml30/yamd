@@ -1,0 +1,5 @@
+Outside the fork.
+
+#fork-context::
+
+Inside a forked context; the output is unchanged.

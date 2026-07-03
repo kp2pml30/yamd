@@ -1,0 +1,36 @@
+{
+  "name": "tree-sitter-yamd",
+  "version": "0.1.0",
+  "description": "YAMD reader-level tree-sitter grammar",
+  "license": "MIT",
+  "main": "bindings/node",
+  "types": "bindings/node",
+  "keywords": [
+    "parser",
+    "tree-sitter",
+    "yamd"
+  ],
+  "files": [
+    "grammar.js",
+    "tree-sitter.json",
+    "queries/*",
+    "src/**",
+    "bindings/node/*"
+  ],
+  "tree-sitter": [
+    {
+      "scope": "source.yamd",
+      "file-types": [
+        "yamd"
+      ],
+      "injection-regex": "^yamd$"
+    }
+  ],
+  "devDependencies": {
+    "tree-sitter-cli": "^0.26.0"
+  },
+  "scripts": {
+    "generate": "tree-sitter generate",
+    "test": "tree-sitter test"
+  }
+}

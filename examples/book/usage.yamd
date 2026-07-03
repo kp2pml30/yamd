@@ -1,0 +1,29 @@
+#use(std/toctree)
+#use(std/table)
+#use(std/pipe-table)
+
+#section{Daily usage}::
+
+A queue entry has two fields. The nested #tt{##row}/#tt{##cell} form takes
+markup cells; the positional #tt{##row{a}{b}} form is terser — one table may
+mix both:
+
+#table(header: 1)
+	#row
+		#cell: Field
+		#cell: Meaning
+	#row{target}{Catalog name, e.g. #emph{M31}}
+	#row{priority}{1 (urgent) through 5 (filler)}
+
+For plain-text cells the pipe-table plugin trades power for source beauty:
+
+#ptable
+	Command         | Effect
+	stargazer add   | Append a queue entry
+	stargazer plan  | Emit tonight's schedule
+	stargazer watch | Re-plan on queue changes
+
+The scripting interfaces get a chapter of their own:
+
+#toctree
+	scripting.yamd

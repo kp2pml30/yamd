@@ -1,0 +1,5 @@
+#use(std/code)
+#code(lang: "python")
+	def greet(name): # not a call
+		msg = {"hi": name}  ## dict, raw braces
+		return msg

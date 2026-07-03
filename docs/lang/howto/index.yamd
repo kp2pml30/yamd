@@ -1,0 +1,41 @@
+#use(std/toctree)
+#use(std/code)
+
+#section{YAMD language how-to}::
+
+One page per built-in feature. Each page states what the feature is, shows
+the source of a working snippet in a code block, and then uses the very same
+snippet live — the rendered page demonstrates the behavior it documents.
+
+Render this set as a single page with #code{nix run . -- docs/lang/howto/index.yamd},
+or as one page per feature with #code|{nix run . -- docs/lang/howto/index.yamd --mode multi -o out/}|.
+
+All pages share one info table (that is how doc-sets work), so glossaries on
+the cross-reference pages list definitions from the whole set.
+
+#toctree(numbered: #t depth: 2)
+	text-basics.yamd
+	calls.yamd
+	bodies.yamd
+	indented-blocks.yamd
+	hanging-blocks.yamd
+	comments.yamd
+	host-escapes.yamd
+	fences.yamd
+	use-plugins.yamd
+	contexts.yamd
+	sections.yamd
+	lists.yamd
+	media.yamd
+	tables.yamd
+	pipe-tables.yamd
+	code.yamd
+	math.yamd
+	xref.yamd
+	footnotes.yamd
+	rfc2119.yamd
+	include.yamd
+	toctree.yamd
+	backends.yamd
+	formatting.yamd
+	cli.yamd

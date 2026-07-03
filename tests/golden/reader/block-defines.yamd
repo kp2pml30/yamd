@@ -1,0 +1,6 @@
+#(define base 10)
+#emph
+	#(define bump 5)
+	total #(+ base bump)
+inline #emph{#(define q 2)q2 is #(* q q)} end
+outer #(+ base 1)

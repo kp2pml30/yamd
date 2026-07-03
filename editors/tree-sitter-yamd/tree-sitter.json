@@ -1,0 +1,44 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+  "grammars": [
+    {
+      "name": "yamd",
+      "camelcase": "Yamd",
+      "scope": "source.yamd",
+      "path": ".",
+      "file-types": [
+        "yamd"
+      ],
+      "injection-regex": "^yamd$",
+      "injections": [
+        "queries/injections.scm"
+      ],
+      "highlights": [
+        "queries/highlights.scm"
+      ]
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "MIT",
+    "description": "YAMD reader-level tree-sitter grammar",
+    "authors": [
+      {
+        "name": "YAMD contributors"
+      }
+    ],
+    "links": {
+      "repository": "https://example.invalid/yamd"
+    }
+  },
+  "bindings": {
+    "c": true,
+    "go": false,
+    "node": true,
+    "python": false,
+    "rust": false,
+    "swift": false,
+    "kotlin": false,
+    "zig": false
+  }
+}

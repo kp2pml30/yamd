@@ -1,0 +1,5 @@
+#use(std/xref)
+
+We define #def("vm"){virtual machine}{a sandboxed execution environment}. A deterministic #ref("vm") then runs the program.
+
+#glossary

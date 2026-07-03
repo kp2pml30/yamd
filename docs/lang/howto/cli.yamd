@@ -1,0 +1,50 @@
+#use(std/code)
+
+#section{Command line}::
+
+Render a document with the bundled CLI (or #code{nix run . --} in place of
+#code{racket -l- yamd/cli}):
+
+#code(lang: "plain")
+	racket -l- yamd/cli doc.yamd                      # HTML to stdout
+	racket -l- yamd/cli doc.yamd --backend html -o doc.html
+	racket -l- yamd/cli index.yamd --mode multi -o out/
+	nix run . -- doc.yamd --backend typst -o doc.typ
+
+Flags:
+
+#list
+	#item: #code{--backend html|markdown|typst} — output serialization (default #code{html}); see the backends page.
+	#item: #code{--mode single|multi} — build strategy (default #code{single}). #code{single} produces one output (toctree children inlined, headings shifted); #code{multi} requires #code{-o <directory>} and writes one page per source document, subdirectories preserved, with prev/up/next navigation and cross-page links rewritten.
+	#item: #code{-o out} — output file (single) or directory (multi); default stdout.
+	#item: #code{--fmt [--check]} — the source formatter; see the formatting page.
+
+A document may instead be a Racket module by starting with #code{#lang yamd}:
+
+#code(lang: "plain")
+	#lang yamd
+	#section{Hello}::
+
+	Some #emph{emphasis}.
+
+Such a module provides #code{doc} — the resolved document Content, for
+programmatic export — and running it directly (#code{racket file.rkt})
+prints the rendered HTML via its #code{main} submodule. #code{#use},
+plugins, contexts and two-pass behave identically to the CLI pipeline: the
+module re-runs the same pipeline at instantiation (it is #strong{not}
+compiled to Racket code).
+
+From Racket, the same pipeline is a library:
+
+#code(lang: "racket")
+	(require yamd)
+	(display (yamd-file->html "doc.yamd"))
+	(display (yamd-string->html "#emph{hello}"))
+
+Corner cases:
+
+#list
+	#item: Flags may follow the input file; parsing is permuted on purpose.
+	#item: Unknown backends and missing input files fail with a clean #code{yamd: …} message and exit 1, no stack trace.
+	#item: Backend modules are loaded only when selected — an unselected backend need not even exist.
+	#item: The CLI always routes through the doc-set builder, so toctree documents work; the plain #code{yamd-file->html} API errors on them.

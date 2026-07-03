@@ -1,0 +1,11 @@
+#list
+	#item
+		First paragraph of the item.
+
+		Second paragraph, same item.
+	#item: A simple one-line item.
+	#item
+		Lead text, then a nested list:
+		#list
+			#item: nested a
+			#item: nested b

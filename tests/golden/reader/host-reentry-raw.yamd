@@ -1,0 +1,4 @@
+#use(std/base, std/code, std/math: asciimath)
+#(para #code{x = {1, 2}} #tt{y})
+custom: #(para #m{a^2 + b_1})
+Literal survives: #(if #t #strong{yes} #strong{no}).

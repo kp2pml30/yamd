@@ -1,0 +1,123 @@
+================================================================================
+host escape statement
+================================================================================
+#(define price 42)
+--------------------------------------------------------------------------------
+
+(document
+  (text_line
+    (host_escape
+      (sigil)
+      (paren_open)
+      (host
+        (host_code))
+      (paren_close))))
+
+================================================================================
+host escape inline expression
+================================================================================
+The item costs #(price) today.
+--------------------------------------------------------------------------------
+
+(document
+  (text_line
+    (text)
+    (host_escape
+      (sigil)
+      (paren_open)
+      (host
+        (host_code))
+      (paren_close))
+    (text)))
+
+================================================================================
+host escape with nested parens and string
+================================================================================
+doubled #(* 2 (+ price 1)) and #(string-append "a(b" "c")
+--------------------------------------------------------------------------------
+
+(document
+  (text_line
+    (text)
+    (host_escape
+      (sigil)
+      (paren_open)
+      (host
+        (host_code)
+        (host_group
+          (host
+            (host_code))))
+      (paren_close))
+    (text)
+    (host_escape
+      (sigil)
+      (paren_open)
+      (host
+        (host_code)
+        (host_string)
+        (host_code)
+        (host_string))
+      (paren_close))))
+
+================================================================================
+multiline host escape with markup re-entry
+================================================================================
+#(for ([x (list 1 2 3)])
+	#p{item #(x)})
+--------------------------------------------------------------------------------
+
+(document
+  (text_line
+    (host_escape
+      (sigil)
+      (paren_open)
+      (host
+        (host_code)
+        (host_group
+          (host
+            (host_group
+              (host
+                (host_code)
+                (host_group
+                  (host
+                    (host_code)))))))
+        (markup_reentry
+          (sigil)
+          (name)
+          (body
+            (brace_open)
+            (text)
+            (host_escape
+              (sigil)
+              (paren_open)
+              (host
+                (host_code))
+              (paren_close))
+            (brace_close))))
+      (paren_close))))
+
+================================================================================
+keyword args with racket literals
+================================================================================
+#code(lang: python)
+	def f(): # not a comment here, raw-ish
+--------------------------------------------------------------------------------
+
+(document
+  (block_call
+    (call_name
+      (sigil)
+      (name))
+    (arguments
+      (paren_open)
+      (host
+        (host_code))
+      (paren_close))
+    (block
+      (text_line
+        (text)
+        (text)
+        (text)
+        (text)
+        (text)
+        (line_comment)))))

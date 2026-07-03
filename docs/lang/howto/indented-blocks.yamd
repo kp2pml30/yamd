@@ -1,0 +1,51 @@
+#use(std/code)
+
+#section{Indented blocks}::
+
+A call alone on its line takes the following indented block as its body.
+Indentation is #strong{tabs only}, exactly one tab per nesting level.
+
+#code(lang: "plain")
+	before
+	#emph
+		first level
+		#strong
+			second level
+		first again
+	after
+
+Live:
+
+before
+#emph
+	first level
+	#strong
+		second level
+	first again
+after
+
+Blank lines never close a block — only a non-blank line with fewer tabs does.
+Inside a markup block body a blank line is a paragraph break:
+
+#code(lang: "plain")
+	#blockquote
+		first para
+
+		second para
+	tail
+
+Live:
+
+#blockquote
+	first para
+
+	second para
+tail
+
+Corner cases:
+
+#list
+	#item: A line starting with spaces at a structure position is a reader error; so is jumping more than one level deeper at once.
+	#item: The block form requires a #emph{bare} call — #code{#name} or #code{#name(args)} only. A call with an inline #code|{{body}}| or #code{: text} followed by a deeper line is an error, not a guessed block.
+	#item: Consequence: #code|{#section{Title}}| + an indented block is #emph{not a form} — the title brace disqualifies the block body. Use #code|{#section{Title}::}| instead.
+	#item: Raw block bodies (e.g. #code{#code}) strip one leading tab per level and keep everything after verbatim, including leading spaces — see the code page.

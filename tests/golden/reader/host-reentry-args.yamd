@@ -1,0 +1,3 @@
+#use(std/base)
+#(para #link("https://example.com"){visit #strong{us}})
+#(para #image("logo.png" alt: "our logo"))

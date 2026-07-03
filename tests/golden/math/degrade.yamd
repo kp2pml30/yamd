@@ -1,0 +1,2 @@
+#use(std/math: asciimath)
+#m{a ? b & qp}

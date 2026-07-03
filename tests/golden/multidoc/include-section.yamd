@@ -1,0 +1,6 @@
+#use(std/include)
+#section{Guide}::
+
+Intro text.
+
+#include("_chapter.yamd")

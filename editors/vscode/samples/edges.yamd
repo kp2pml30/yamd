@@ -1,0 +1,10 @@
+#; edge cases for the grammar
+
+Plain text with symbols | * $ ^ that are not special.
+An issue reference ##42 and a color ##ff8800 use the ## escape.
+
+#def(vm){virtual machine}: A sandboxed execution environment.
+Later we rely on #ref(vm) semantics, resolved on the second pass.
+
+#fork-context::
+#glossary

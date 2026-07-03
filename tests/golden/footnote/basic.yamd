@@ -1,0 +1,5 @@
+#use(std/footnote)
+
+First claim.#note{A supporting detail.} Second claim.#note{Another detail.}
+
+#notes
