@@ -10,11 +10,13 @@
          (only-in racket/list append-map))
 
 (provide emph strong tt
+         linebreak
          para
          (rename-out [yamd-link link])
          image
          blockquote
          hr
+         pagebreak
          section
          (rename-out [yamd-list list])
          item
@@ -31,6 +33,15 @@
 
 (define (tt . bodies)
   (apply elem 'code bodies))
+
+;; #linebreak — an inline hard line break inside a paragraph. Zero-arg, void
+;; element (no body, no args), modeled on #hr. `br` is NOT a block tag, so
+;; decode-flow keeps it in the paragraph flow (unlike #hr, which breaks it).
+;; HTML: <br />. Markdown: a CommonMark hard break (backslash + newline),
+;; falling back to inline <br /> inside pipe-table cells / headings where a
+;; literal newline is destructive. Typst: #linebreak().
+(define (linebreak)
+  (elem 'br))
 
 ;; #link("https://…"){text} — the URL is the first (host) argument, the link
 ;; text is the body. Renders an <a href="…"> anchor (inline).
@@ -78,6 +89,18 @@
 ;; tag, so decode-flow keeps it out of paragraphs.
 (define (hr)
   (elem 'hr))
+
+;; #pagebreak — a block-level page break. Zero-arg. Represented as a plain
+;; <div style="break-after: page"></div>: `div` is a decode block tag, so it is
+;; NOT wrapped in <p>, and every backend can pattern-match a plain element tag.
+;; HTML emits it verbatim; markdown emits it as a raw HTML block; the typst
+;; backend special-cases this exact style to #pagebreak(). Rationale for the IR
+;; choice: a dedicated `%`-tag would be rejected by the backends as an internal
+;; leak, and a bespoke element tag (e.g. 'pagebreak) would serialize as literal
+;; <pagebreak> in HTML/markdown — a styled div is valid, portable HTML and the
+;; single thing all three backends already recognize.
+(define (pagebreak)
+  (elem 'div #:attrs (list (cons 'style "break-after: page"))))
 
 ;; Explicit paragraph. `#para{…}` / `#para: …` / `#para` + block. Emits a <p>;
 ;; because <p> is a block tag, decode-flow leaves it untouched (it is not
@@ -234,9 +257,11 @@
   (check-exn #rx"alt must be a string" (lambda () (image "cat.png" #:alt 42)))
   (check-exn #rx"url must be a string" (lambda () (image 42 #:alt "x")))
 
-  ;; --- blockquote / hr ----------------------------------------------------
+  ;; --- linebreak / blockquote / hr / pagebreak ----------------------------
+  (check-equal? (linebreak) (elem 'br))
   (check-equal? (blockquote "quoted") (elem 'blockquote "quoted"))
   (check-equal? (hr) (elem 'hr))
+  (check-equal? (pagebreak) (elem 'div #:attrs '((style . "break-after: page"))))
 
   ;; --- lists --------------------------------------------------------------
   (check-equal? (yamd-list (item "a") (item "b"))

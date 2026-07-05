@@ -94,6 +94,18 @@ Content = (U String element raw delayed (Listof Content))
 - `content->sexp` is the stable debug/golden view of the IR.
 - Tags starting with `%` are reader/decode-internal (only `%para-break` so
 	far) and must never reach a backend (the HTML backend errors).
+- `#linebreak`/`#pagebreak` (`std/base`) use plain, backend-recognizable
+	element tags rather than new IR node kinds. `#linebreak` is `(elem 'br)` —
+	inline (not a `decode` block tag), rendered `<br />` (HTML) / CommonMark
+	hard break, i.e. `\`+newline (Markdown; the backslash form falls back to
+	inline `<br />` in pipe-table cells and headings, where a literal newline is
+	destructive) / `#linebreak()` (Typst). `#pagebreak` is
+	`(elem 'div #:attrs '((style . "break-after: page")))` — a `div` is a
+	`decode` block tag (so it is never `<p>`-wrapped) that HTML emits verbatim
+	and Markdown emits as a raw HTML block; the Typst backend pattern-matches
+	this exact style and emits `#pagebreak()`. A styled `div` is preferred over
+	a dedicated `%`-tag (which backends reject as an internal leak) or a bespoke
+	tag like `'pagebreak` (which would serialize as literal `<pagebreak>`).
 
 ## The reader (`yamd/reader/reader.rkt`)
 

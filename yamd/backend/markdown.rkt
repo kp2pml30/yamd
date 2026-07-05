@@ -82,6 +82,15 @@
 ;; A rendered block plus its kind (kind drives spacing inside list items).
 (struct md-block ([kind : Symbol] [text : String]) #:transparent)
 
+;; How an inline `br` (hard line break) renders. Default is a CommonMark hard
+;; break — a backslash followed by a newline. In contexts where a literal
+;; newline is DESTRUCTIVE (a pipe-table cell, whose newlines break the row; a
+;; heading, whose newlines are collapsed to spaces), this is rebound to inline
+;; `<br />` so the break survives the later newline->space collapse. CommonMark
+;; permits raw inline HTML, so `<br />` is a portable fallback.
+(: current-linebreak (Parameterof String))
+(define current-linebreak (make-parameter "\\\n"))
+
 ;; ---------------------------------------------------------------------------
 ;; Entry point
 
@@ -214,7 +223,11 @@
   (define level
     (case tag [(h1) 1] [(h2) 2] [(h3) 3] [(h4) 4] [(h5) 5] [(h6) 6] [else 1]))
   (define title
-    (string-trim (string-replace (render-inline (element-children e)) "\n" " ")))
+    (string-trim
+     (string-replace
+      (parameterize ([current-linebreak "<br />"])
+        (render-inline (element-children e)))
+      "\n" " ")))
   (string-append (make-string level #\#) " " (id-anchor (attr-ref e 'id)) title))
 
 ;; Inline-HTML anchor target for an id a native CommonMark construct cannot
@@ -336,7 +349,11 @@
 (: render-cell (-> element String))
 (define (render-cell cell)
   (string-replace
-   (string-replace (string-trim (render-inline (element-children cell))) "\n" " ")
+   (string-replace
+    (string-trim
+     (parameterize ([current-linebreak "<br />"])
+       (render-inline (element-children cell))))
+    "\n" " ")
    "|" "\\|"))
 
 (: pipe-row (-> (Listof String) String))
@@ -366,7 +383,35 @@
 
 (: render-inline (-> (Listof Content) String))
 (define (render-inline items)
-  (apply string-append (map render-inline-1 (splice-flatten items))))
+  ;; A CommonMark hard break is a backslash immediately before the line-ending
+  ;; newline. When `#linebreak` sits at the END of a source line the reader also
+  ;; emits that line's own "\n" text node right after the `br`, so a naive concat
+  ;; yields `\` + newline + newline — a BLANK line, which CommonMark reads as a
+  ;; paragraph break (dropping the stray `\`). The two breaks are one intent
+  ;; (explicit hard + implicit line-join), so we drop the redundant soft newline
+  ;; that immediately follows a newline-terminated hard break. Only the default
+  ;; `\`+newline form triggers this; the `<br />` fallback (cells/headings, no
+  ;; trailing newline) never does, and non-`br` rendering is untouched.
+  (let loop ([xs : (Listof Content) (splice-flatten items)]
+             [strip-lead-nl? : Boolean #f]
+             [acc : (Listof String) '()])
+    (cond
+      [(null? xs) (apply string-append (reverse acc))]
+      [else
+       (define c (car xs))
+       (define rendered (render-inline-1 c))
+       (define piece
+         (if (and strip-lead-nl? (string? c)
+                  (> (string-length rendered) 0)
+                  (char=? (string-ref rendered 0) #\newline))
+             (substring rendered 1)
+             rendered))
+       (define next-strip?
+         (and (element? c) (eq? (element-tag c) 'br)
+              (let ([lb (current-linebreak)])
+                (and (> (string-length lb) 0)
+                     (char=? (string-ref lb (sub1 (string-length lb))) #\newline)))))
+       (loop (cdr xs) next-strip? (cons piece acc))])))
 
 (: render-inline-1 (-> Content String))
 (define (render-inline-1 c)
@@ -391,6 +436,7 @@
     [(em) (wrap-emph "*" e)]
     [(strong) (wrap-emph "**" e)]
     [(code) (inline-code (string-replace (collect-text e) "\n" " "))]
+    [(br) (current-linebreak)]
     [(a) (render-link e)]
     [(img) (render-img e)]
     [else
@@ -793,6 +839,35 @@
 
   ;; --- hr ---
   (check-equal? (content->markdown (element 'hr '() '() #f)) "---")
+
+  ;; --- linebreak (br): CommonMark hard break in a paragraph ---
+  (check-equal? (content->markdown
+                 (element 'p '() (list "a" (element 'br '() '() #f) "b") #f))
+                "a\\\nb")
+  ;; a `br` at the end of a source line is followed by that line's "\n" text
+  ;; node; the redundant soft newline is coalesced so it stays ONE hard break
+  ;; (a blank line would drop the break and split the paragraph)
+  (check-equal? (content->markdown
+                 (element 'p '() (list "a" (element 'br '() '() #f) "\n" "b") #f))
+                "a\\\nb")
+  ;; in a heading, a literal newline would collapse to a space; falls back to
+  ;; inline <br /> so the break survives
+  (check-equal? (content->markdown
+                 (element 'h1 '() (list "a" (element 'br '() '() #f) "b") #f))
+                "# a<br />b")
+  ;; in a pipe-table cell, a literal newline would break the row; falls back too
+  (check-equal? (content->markdown
+                 (element 'table '()
+                          (list (element 'tbody '()
+                                         (list (element 'tr '()
+                                                        (list (element 'td '()
+                                                                       (list "a" (element 'br '() '() #f) "b") #f)) #f)) #f)) #f))
+                "|  |\n| --- |\n| a<br />b |")
+
+  ;; --- pagebreak (styled div): raw HTML block ---
+  (check-equal? (content->markdown
+                 (element 'div '((style . "break-after: page")) '() #f))
+                "<div style=\"break-after: page\"></div>")
 
   ;; --- code block, tok spans stripped, lang from class ---
   (check-equal? (content->markdown

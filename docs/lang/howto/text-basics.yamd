@@ -16,6 +16,8 @@ which is loaded by default — no #code{#use} needed.
 
 	#emph{emphasis}, #strong{bold}, and #tt{inline code}.
 
+	End a line early#linebreak and keep going in the same paragraph.
+
 	Visit #link("https://example.com"){our homepage} for details.
 
 Live:
@@ -29,11 +31,14 @@ Second paragraph after a blank line.
 
 #emph{emphasis}, #strong{bold}, and #tt{inline code}.
 
+End a line early#linebreak and keep going in the same paragraph.
+
 Visit #link("https://example.com"){our homepage} for details.
 
 Corner cases:
 
 #list
+	#item: #code{#linebreak} is an inline hard line break — it stays inside the paragraph (unlike #code{#hr}, which is a block-level rule). HTML #tt{<br />}, CommonMark backslash break, Typst #code{#linebreak()}.
 	#item: Trailing spaces on a content line are literal output — they are preserved, not stripped.
 	#item: A whitespace-only line counts as blank (a paragraph break).
 	#item: #code{#link} takes the URL as a host-language string argument and the link text as the body; a non-string URL is an error.

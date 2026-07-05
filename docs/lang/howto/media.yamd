@@ -20,6 +20,10 @@ surrounding paragraph).
 
 	Here is #image("cat.png" alt: "a napping cat") shown inline.
 
+	#pagebreak
+
+	Content after a page break.
+
 Live:
 
 Above the rule.
@@ -34,9 +38,14 @@ Above the rule.
 
 Here is #image("cat.png" alt: "a napping cat") shown inline.
 
+#pagebreak
+
+Content after a page break.
+
 Corner cases:
 
 #list
+	#item: #code{#pagebreak} is a block-level page break: HTML #tt{<div style="break-after: page">}, Typst #code{#pagebreak()}, and a raw HTML block in Markdown (which has no native page break).
 	#item: Omitting #code{alt:} is an error, on purpose — a missing alt is invisible to sighted authors while breaking screen readers. For a purely decorative image pass an explicit #code{alt: ""}.
 	#item: The function is #code{#blockquote}, not #code{#quote} — #code{quote} is a Racket special form, and a call named #code{quote} would never reach the library.
 	#item: #code{#hr} is a zero-argument void element: no args, no body.

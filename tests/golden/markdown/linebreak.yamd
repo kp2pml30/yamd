@@ -1,0 +1,9 @@
+#use(std/table)
+A line,#linebreak
+broken hard within the same paragraph.
+
+#section{Heading with#linebreak a break}
+
+#table(header: 1)
+	#row{Name}{Detail}
+	#row{multi#linebreak line}{ok}

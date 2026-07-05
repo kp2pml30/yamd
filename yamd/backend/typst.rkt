@@ -15,6 +15,9 @@
 ;;   section         its children (heading + content), rendered as a block seq
 ;;   h1..h6          `=`..`======` headings
 ;;   em              `_..._`      strong `*...*`
+;;   br              #linebreak() (inline hard line break)
+;;   div             #pagebreak() — ONLY a `style="break-after: page"` div (the
+;;                   stdlib #pagebreak); any other div is an error
 ;;   code (inline)   inline raw `` `..` `` (or #raw("..") if it holds a backtick)
 ;;   pre>code        fenced ```lang raw block; tok spans stripped to plain text,
 ;;                   language taken from `class="language-X"`
@@ -235,7 +238,7 @@
 ;; Block-level flow
 
 (define block-tags : (Listof Symbol)
-  '(p section h1 h2 h3 h4 h5 h6 ul ol dl blockquote pre hr table nav))
+  '(p section h1 h2 h3 h4 h5 h6 ul ol dl blockquote pre hr table nav div))
 
 (: block-item? (-> Content Boolean))
 (define (block-item? c)
@@ -306,6 +309,15 @@
     [(pre) (render-code-block e)]
     [(hr) "#line(length: 100%)"]
     [(table) (render-table e)]
+    [(div)
+     ;; The only <div> the stdlib emits is #pagebreak's page break; recognize it
+     ;; by its exact style and map it to Typst's #pagebreak(). Any other div is
+     ;; unsupported (no generic div in Typst markup) — fail loudly, do not drop.
+     (define style (assq 'style (element-attrs e)))
+     (cond
+       [(and style (string=? (cdr style) "break-after: page")) "#pagebreak()"]
+       [else (error 'content->typst "cannot render block element div (at ~a)"
+                    (element-loc e))])]
     [else
      (error 'content->typst "cannot render block element ~a (at ~a)"
             tag (element-loc e))]))
@@ -335,6 +347,12 @@
   (case tag
     [(em) (string-append "_" (render-inline kids) "_")]
     [(strong) (string-append "*" (render-inline kids) "*")]
+    [(br)
+     ;; A hard line break. #linebreak() is preferred over the `\ ` markup form:
+     ;; render-inline concatenates inline pieces with NO separators, and the
+     ;; function call is self-delimiting, whereas `\ ` relies on a trailing space
+     ;; that could merge with adjacent escaped text.
+     "#linebreak()"]
     [(code) (render-inline-code e)]
     [(a) (render-link e)]
     [(img) (render-img e)]
@@ -845,6 +863,14 @@
                 "#quote(block: true)[\nq\n]")
   (check-equal? (content->typst (elem 'hr)) "#line(length: 100%)")
   (check-equal? (content->typst (elem 'sup "2")) "#super[2]")
+
+  ;; --- linebreak (br) inline / pagebreak (styled div) block ---
+  (check-equal? (content->typst (elem 'p "a" (elem 'br) "b")) "a#linebreak()b")
+  (check-equal? (content->typst (elem 'div #:attrs '((style . "break-after: page"))))
+                "#pagebreak()")
+  ;; a div with any other style is unsupported (fails loudly, never dropped)
+  (check-exn #rx"cannot render block element div"
+             (lambda () (content->typst (elem 'div #:attrs '((style . "color: red"))))))
 
   ;; --- code block ---
   (check-equal?
