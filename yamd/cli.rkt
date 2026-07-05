@@ -3,6 +3,7 @@
 ;;
 ;;   racket -l- yamd/cli file.yamd [--backend html|markdown|typst]
 ;;                                 [--mode single|multi] [-o out]
+;;   racket -l- yamd/cli --fmt [--check] file.yamd ...
 ;;
 ;; Builds a document (set) with the chosen backend and build mode
 ;; (docs/multi-doc.md): `single` (default) produces one output — a file via
@@ -97,7 +98,7 @@
   (define out-file #f)
   (define fmt? #f)
   (define check? #f)
-  (define input
+  (define inputs
     (command-line
      #:program "yamd"
      #:argv (permute argv)
@@ -111,21 +112,31 @@
      [("-o" "--output") o
                         "single: write to this file instead of stdout; multi: output directory (required)"
                         (set! out-file o)]
-     [("--fmt") "Format the .yamd source (conservative, semantics-preserving); writes in place, or to -o"
+     [("--fmt") "Format the .yamd sources (conservative, semantics-preserving); writes in place, or to -o"
                 (set! fmt? #t)]
-     [("--check") "With --fmt: exit 1 if the file is not already formatted (writes nothing)"
+     [("--check") "With --fmt: exit 1 if any file is not already formatted (writes nothing)"
                   (set! check? #t)]
-     #:args (input-file) input-file))
-  (unless (file-exists? input)
-    (die "no such input file: ~a" input))
+     #:args input-files input-files))
+  (when (null? inputs)
+    (die "expected an input file"))
+  (for ([i (in-list inputs)])
+    (unless (file-exists? i)
+      (die "no such input file: ~a" i)))
   (when (and check? (not fmt?))
     (die "--check is only meaningful with --fmt"))
   (when fmt?
     (when (or backend mode)
       (die "--backend/--mode make no sense with --fmt (formatting rewrites source, it does not render)"))
-    (run-fmt input out-file check?)
-    ;; run-fmt exits on its own (check mode) or returns after writing
-    (exit 0))
+    (when (and out-file (not (null? (cdr inputs))))
+      (die "-o with --fmt takes exactly one input file (got ~a)" (length inputs)))
+    (define ok?
+      (for/fold ([ok? #t]) ([i (in-list inputs)])
+        (and (run-fmt i out-file check?) ok?)))
+    (exit (if ok? 0 1)))
+  (unless (null? (cdr inputs))
+    (die "rendering takes exactly one input file (got ~a); several files only make sense with --fmt"
+         (length inputs)))
+  (define input (car inputs))
   (set! backend (or backend "html"))
   (set! mode (or mode "single"))
   (define strategy (lookup-mode mode))
@@ -173,9 +184,10 @@
 
 ;; `--fmt`: conservative source formatting (yamd/fmt). Reads the document with
 ;; the real reader; a document that does not parse is reported and never
-;; rewritten. `--check` writes nothing and exits 1 when the file is not already
-;; formatted (CI-friendly). Otherwise the formatted text is written in place
-;; (only when it actually changes) or to `-o`.
+;; rewritten. `--check` writes nothing and returns #f when the file is not
+;; already formatted (the caller exits 1 after checking every file —
+;; CI-friendly). Otherwise the formatted text is written in place (only when
+;; it actually changes) or to `-o`, returning #t.
 (define (run-fmt input out-file check?)
   (define text (file->string input))
   (define formatted
@@ -184,19 +196,23 @@
       (format-yamd text #:src input)))
   (cond
     [check?
-     (unless (string=? text formatted)
-       (eprintf "yamd: ~a is not formatted\n" input)
-       (exit 1))]
+     (cond
+       [(string=? text formatted) #t]
+       [else (eprintf "yamd: ~a is not formatted\n" input)
+             #f])]
     [out-file
      (when (directory-exists? out-file)
        (die "-o ~a is a directory; --fmt writes a single file" out-file))
      (with-handlers ([exn:fail:filesystem? (lambda (e) (die "~a" (exn-message e)))])
        (call-with-output-file out-file #:exists 'replace
-         (lambda (o) (write-string formatted o))))]
+         (lambda (o) (write-string formatted o))))
+     #t]
     [(not (string=? text formatted))
      (with-handlers ([exn:fail:filesystem? (lambda (e) (die "~a" (exn-message e)))])
        (call-with-output-file input #:exists 'replace
-         (lambda (o) (write-string formatted o))))]))
+         (lambda (o) (write-string formatted o))))
+     #t]
+    [else #t]))
 
 (module+ main
   (run))

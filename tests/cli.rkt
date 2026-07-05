@@ -173,6 +173,58 @@
      (check-equal? err ""))
    (lambda () (delete-file f))))
 
+(test-case "--fmt formats several files in one invocation"
+  (with-dirty-doc
+   (lambda (f1)
+     (with-dirty-doc
+      (lambda (f2)
+        (define-values (out err code)
+          (run-cli "--fmt" (path->string f1) (path->string f2)))
+        (check-equal? code 0)
+        (check-not-equal? (file->string f1) dirty-src)
+        (check-not-equal? (file->string f2) dirty-src))))))
+
+(test-case "--fmt --check over several files reports every dirty one"
+  (define clean (make-temporary-file "yamd-fmt-clean-~a.yamd"))
+  (dynamic-wind
+   (lambda () (display-to-file "Hello.\n" clean #:exists 'replace))
+   (lambda ()
+     (with-dirty-doc
+      (lambda (f1)
+        (with-dirty-doc
+         (lambda (f2)
+           (define-values (out err code)
+             (run-cli "--fmt" "--check"
+                      (path->string f1) (path->string clean) (path->string f2)))
+           (check-equal? code 1)
+           ;; both dirty files are reported — the check does not stop early
+           (check-regexp-match (regexp (regexp-quote (path->string f1))) err)
+           (check-regexp-match (regexp (regexp-quote (path->string f2))) err)
+           (check-equal? (file->string f1) dirty-src)
+           (check-equal? (file->string f2) dirty-src))))))
+   (lambda () (delete-file clean))))
+
+(test-case "--fmt -o with several inputs is a clean error"
+  (with-dirty-doc
+   (lambda (f1)
+     (with-dirty-doc
+      (lambda (f2)
+        (define-values (out err code)
+          (run-cli "--fmt" "-o" "somewhere.yamd"
+                   (path->string f1) (path->string f2)))
+        (check-equal? code 1)
+        (check-regexp-match #rx"exactly one input file" err))))))
+
+(test-case "rendering several files is a clean error"
+  (with-dirty-doc
+   (lambda (f1)
+     (with-dirty-doc
+      (lambda (f2)
+        (define-values (out err code)
+          (run-cli (path->string f1) (path->string f2)))
+        (check-equal? code 1)
+        (check-regexp-match #rx"only make sense with --fmt" err))))))
+
 (test-case "--check without --fmt is a clean error"
   (with-dirty-doc
    (lambda (f)

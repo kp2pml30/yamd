@@ -9,8 +9,13 @@ documents — correctness never depends on line heuristics.
 
 #code(lang: "plain")
 	racket -l- yamd/cli --fmt file.yamd            # rewrite in place
+	racket -l- yamd/cli --fmt a.yamd b.yamd c.yamd # several files at once
 	racket -l- yamd/cli --fmt file.yamd -o out.yamd
 	racket -l- yamd/cli --fmt --check file.yamd    # exit 1 if not formatted (CI)
+
+#code{--check} over several files reports every unformatted file before
+exiting 1; #code{-o} requires exactly one input. Repo-integration recipes
+(dev shell, git hook, CI) live in docs/usage/formatter.md.
 
 What it normalizes:
 
