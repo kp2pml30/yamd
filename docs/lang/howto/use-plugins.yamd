@@ -26,6 +26,22 @@ Live (this page's top #code{#use} bound the asciimath variant):
 
 Inline math now works: #m{sum_(i=0)^n i^2}.
 
+#section{Plugin search path}::
+
+Collection paths resolve through Racket's collection search, so
+#code{PLTCOLLECTS} is the #code{PYTHONPATH} equivalent:
+
+#code(lang: "plain")
+	PLTCOLLECTS=":/path/to/plugins" yamd doc.yamd
+
+makes #code{#use(mycol/mod)} find #code{/path/to/plugins/mycol/mod.rkt}. The
+leading colon keeps Racket's default collection paths in the search list —
+omit it and the defaults are dropped. The packaged #code{yamd} binary
+(#code{nix run}) appends its own collection at runtime, so your
+#code{PLTCOLLECTS} is respected. For a durable mapping prefer
+#code{raco pkg install --link mycol/}; for project-local plugins the
+document-relative string form needs no search path at all.
+
 Corner cases:
 
 #list

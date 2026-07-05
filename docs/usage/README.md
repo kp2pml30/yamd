@@ -35,6 +35,12 @@ The package installs one binary, `yamd` — the same CLI as `nix run`:
 rendering, build modes (`--mode single|multi`), backends
 (`--backend html|markdown|typst`), and the [formatter](formatter.md).
 
+Plugin collections outside the document tree resolve via `PLTCOLLECTS`
+(Racket's search path): `PLTCOLLECTS=":/path/to/plugins" yamd doc.yamd`
+makes `#use(mycol/mod)` find `/path/to/plugins/mycol/mod.rkt` — the wrapper
+appends its own collection without clobbering yours (keep the leading colon;
+it preserves Racket's default paths).
+
 ## Writing documents
 
 The language itself is documented in [docs/lang/](../lang/design.md); the

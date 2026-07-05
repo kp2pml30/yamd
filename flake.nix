@@ -83,9 +83,14 @@
           installPhase = ''
             mkdir -p $out/share/yamd $out/bin
             cp -r yamd $out/share/yamd/yamd
+            # PLTCOLLECTS is appended at RUNTIME (not baked with --set) so the
+            # user's own value survives: PLTCOLLECTS=":/my/plugins" yamd …
+            # still finds #use(mycol/mod) under /my/plugins. The leading empty
+            # element (from the ":-" default or the user's leading colon)
+            # keeps Racket's default collection paths in the list.
             makeWrapper ${pkgs.racket}/bin/racket $out/bin/yamd \
               --add-flags "-l- yamd/cli" \
-              --set PLTCOLLECTS ":$out/share/yamd" \
+              --run "export PLTCOLLECTS=\"\''${PLTCOLLECTS:-}:$out/share/yamd\"" \
               --set PLT_COMPILED_FILE_CHECK exists
           '';
         };
