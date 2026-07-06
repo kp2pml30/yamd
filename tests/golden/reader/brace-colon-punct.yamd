@@ -1,0 +1,5 @@
+A brace body plus a trailing colon at line start is punctuation, not a
+body, when nothing is indented below:
+
+#emph{note}:
+the colon stays literal and this joins the paragraph.

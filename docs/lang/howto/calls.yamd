@@ -13,8 +13,9 @@ The forms:
 	#item: #code{#name(args)} — arguments are host (Racket) code.
 	#item: #code|{#name(args){body}}| — plus an inline markup body.
 	#item: #code{#name(args): rest} — body is the rest of the line.
+	#item: #code{#name(args):} at end of line — body is the following indented block.
 	#item: #code{#name(args)::} — body is the rest of the enclosing block.
-	#item: #code{#name} alone on a line — body is the following indented block.
+	#item: #code{#name} alone on a line — sugar for #code{#name:}: body is the following indented block.
 
 Bare call and keyword sugar — inside #code{(args)} an identifier ending in
 #code{:} becomes a keyword argument (#code{style: "1"} reads as

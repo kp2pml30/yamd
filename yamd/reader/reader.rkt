@@ -7,7 +7,9 @@
 ;; `#;` / `#;{...}` comments, `#(expr)` host escape (statement and inline),
 ;; `#name`, `#name(args)` with `key:` keyword sugar, `#name{body}` (markup /
 ;; raw / custom / lazy per registry, nestable, multi-body), `#name(args):
-;; rest-of-line`, indented block bodies (markup / raw / custom), `::` hanging
+;; rest-of-line`, indented block bodies (markup / raw / custom — a bare call
+;; alone on its line, or `#name{…}:` at end of line to keep inline bodies too;
+;; the bare form is sugar for the trailing `:`), `::` hanging
 ;; blocks (recursive, top level = rest of file), `|{ }|` / `|==={ }===|`
 ;; fences for inline bodies, `#use(...)` module imports + reader-submodule
 ;; body-reader merging, block-local definitions via the yamd-body splicing
@@ -121,8 +123,20 @@
 ;; peeked-over chars are 1-byte ASCII, so byte-offset peeking is safe; the
 ;; non-blank line's indentation is re-validated by line-tab-depth (space
 ;; errors) when it is actually read.
-(define (peek-next-line-depth in)
-  (let loop ([k 0] [line-start 0] [depth 0] [counting-tabs? #t])
+(define (peek-next-line-depth in) (peek-line-depth-from in 0))
+
+;; Generalizes peek-next-line-depth to start at peek offset `start`, which
+;; should sit at a line boundary or on a newline that ends the current line
+;; (that newline is skipped, like any blank line). Used by the `:` block form,
+;; where `start` is the newline just past a `#name{…}:`. Returns the tab-depth
+;; and the peek offset of the content line's start (before its tabs); the
+;; caller consume-chars's that offset. INVARIANT: `start`, and everything
+;; peeked over up to the returned line-start, are 1-byte ASCII (tab / space /
+;; newline), so the byte-offset args to peek-char equal char counts and match
+;; consume-chars later. It returns at the first content char without advancing
+;; past it, so no multibyte char is ever counted.
+(define (peek-line-depth-from in start)
+  (let loop ([k start] [line-start start] [depth 0] [counting-tabs? #t])
     (define ch (peek-char in k))
     (cond
       [(eof-object? ch) (values #f #f)]
@@ -132,6 +146,19 @@
       [(eqv? ch #\space)
        (loop (add1 k) line-start depth #f)]
       [else (values depth line-start)])))
+
+;; Port is at a `:` known to end its line (colon-ends-line?). Returns the peek
+;; offset of the newline just past the `:` and any trailing spaces, or #f at
+;; eof. Peek-only; assumes offset 0 is the `:` (starts at k=1). Only `:`, space
+;; and tab are peeked over — all 1-byte ASCII, so the returned offset is a
+;; valid consume-chars count (see peek-line-depth-from's invariant).
+(define (colon-eol-newline-offset in)
+  (let loop ([k 1])
+    (define ch (peek-char in k))
+    (cond
+      [(eqv? ch #\newline) k]
+      [(or (eqv? ch #\space) (eqv? ch #\tab)) (loop (add1 k))]
+      [else #f]))) ; eof (no newline) — nothing can be indented below
 
 ;; ---------------------------------------------------------------------------
 ;; Block reader
@@ -206,9 +233,44 @@
         ;; (e.g. the title in `#section{Title}::`); the hanging body follows.
         (define hbody (read-hanging-body src in depth breader name))
         (list (assemble-call src in name args (append bodies (list hbody)) line col pos))]
+       [(eq? bkind 'colon-eol)
+        ;; Bare `#name:` ending the line (no prior body; `:` already consumed,
+        ;; port at the newline). The body is the block indented under it —
+        ;; symmetric to `::` but indented rather than hanging — or, with nothing
+        ;; indented below, an empty body (the historical `#name:`-at-eol
+        ;; meaning). Same call shape as the bare-`#name`-block form below.
+        (define-values (nd nskip) (peek-next-line-depth in))
+        (cond
+          [(and nd (>= nd (add1 depth)))
+           (consume-chars in nskip) ; the `:`-line newline + any blank spacers
+           (define bbody (read-block-body src in depth breader name))
+           (list (assemble-call src in name args (list bbody) line col pos))]
+          [else
+           (define empty (wrap-body breader (rest-of-line-body src in name breader)))
+           (consume-newline in)
+           (list (assemble-call src in name args (list empty) line col pos) "\n")])]
+       [(eq? bkind 'brace-colon-eol)
+        ;; `#name{…}:` ending the line, after inline bodies (`:` NOT yet
+        ;; consumed). Attach the indented block below as one more body —
+        ;; symmetric to `#section{Title}::`, but indented. If nothing is
+        ;; indented deeper below, the `:` is ordinary trailing text
+        ;; (`#code{index.yamd}:` in prose): leave it for read-text-line.
+        (define nl (colon-eol-newline-offset in))
+        (define-values (nd nskip)
+          (if nl (peek-line-depth-from in nl) (values #f #f)))
+        (cond
+          [(and nd (>= nd (add1 depth)))
+           (consume-chars in nskip) ; `:` + trailing hspace + newline + blanks
+           (define bbody (read-block-body src in depth breader name))
+           (list (assemble-call src in name args (append bodies (list bbody)) line col pos))]
+          [else
+           (read-text-line src in
+                           (list (assemble-call src in name args bodies line col pos)))])]
        [(and (eq? bkind 'none) (line-blank? in))
         ;; Bare call alone on its line: take the following indented block as
-        ;; its body. Blank spacer lines between the call and its block are
+        ;; its body — this is exactly the sugar `#name:` with the `:` elided,
+        ;; and produces the same call shape as the 'colon-eol branch above.
+        ;; Blank spacer lines between the call and its block are
         ;; consumed (they separate nothing); without a deeper line the call
         ;; stays bare and the blanks remain paragraph breaks.
         (skip-hspace in)
@@ -538,7 +600,15 @@
         (when (eq? bkind 'hanging)
           (reader-error src in
             "`::` hanging block is only valid on its own line, not inline"))
-        (list (assemble-call src in name args bodies line col pos))])]
+        ;; `#name:` ending a running text line has no indented block to grab
+        ;; (there is no "below" inside a line), so `:` is an empty rest-of-line
+        ;; body — matching a bare `#name:` on its own line with nothing under it.
+        (define bodies*
+          (if (eq? bkind 'colon-eol)
+              (append bodies
+                      (list (wrap-body breader (rest-of-line-body src in name breader))))
+              bodies))
+        (list (assemble-call src in name args bodies* line col pos))])]
     [else
      (reader-error src in "stray `#` before ~v (use `##` for a literal `#`)" ch)]))
 
@@ -610,8 +680,14 @@
 
 ;; Zero or more inline bodies: repeated `{...}` and/or `|{...}|` fences
 ;; (multi-body, e.g. #row{a}{b}), or a single `: rest-of-line`, or `::`
-;; hanging. Returns (values bodies kind) where kind is 'none | 'inline |
-;; 'hanging.
+;; hanging. Returns (values bodies kind) where kind is:
+;;   'none            no body on the line (bare call; may take a block body)
+;;   'inline          one or more brace/fence bodies, or a `: rest-of-line`
+;;   'hanging         `::` seen (newline consumed); caller appends the rest body
+;;   'colon-eol       `#name:` at eol, no prior body (`:` consumed); caller
+;;                    attaches an indented block or an empty body
+;;   'brace-colon-eol `#name{…}:` at eol (`:` NOT consumed); caller attaches an
+;;                    indented block if one follows, else the `:` is literal
 (define (read-inline-bodies src in name breader #:line-start? [line-start? #f])
   (let loop ([bodies '()])
     (define ch (peek-char in))
@@ -636,12 +712,42 @@
        (consume-newline in)
        (values (reverse bodies) 'hanging)]
       [(and (null? bodies) (eqv? ch #\:))
+       ;; `:` body introducer, no prior body. Text after `:` is a rest-of-line
+       ;; body (`#emph: text`); a `:` that ends the line is an empty body, or —
+       ;; on its own line — the following indented block (read-line-call, which
+       ;; knows the depth, decides). Consuming the `:` here is safe: with no
+       ;; brace body, `#emph:` has always been a body form, never punctuation.
        (read-char in) ; :
        (skip-hspace in)
-       (values (list (wrap-body breader (rest-of-line-body src in name breader)))
-               'inline)]
+       (define nx (peek-char in))
+       (cond
+         [(or (eof-object? nx) (eqv? nx #\newline))
+          (values '() 'colon-eol)]
+         [else
+          (values (list (wrap-body breader (rest-of-line-body src in name breader)))
+                  'inline)])]
+      [(and line-start? (pair? bodies)
+            (eqv? ch #\:) (not (eqv? (peek-char in 1) #\:))
+            (colon-ends-line? in))
+       ;; A `:` ending the line AFTER inline brace/fence bodies, at line start:
+       ;; a candidate indented-block introducer (`#section{Title}:`). This is
+       ;; ambiguous with trailing punctuation (`#code{index.yamd}:` in prose),
+       ;; so DON'T commit — leave the `:` in the port. read-line-call attaches
+       ;; the block only if one is actually indented below; with no block the
+       ;; `:` falls through to read-text-line as literal text (old behavior).
+       (values (reverse bodies) 'brace-colon-eol)]
       [else
        (values (reverse bodies) (if (null? bodies) 'none 'inline))])))
+
+;; Peek-only (consumes nothing): the next char is `:`; true iff from just after
+;; it to the next newline/eof is only spaces/tabs — i.e. the `:` ends the line.
+(define (colon-ends-line? in)
+  (let loop ([k 1])
+    (define ch (peek-char in k))
+    (cond
+      [(or (eof-object? ch) (eqv? ch #\newline)) #t]
+      [(or (eqv? ch #\space) (eqv? ch #\tab)) (loop (add1 k))]
+      [else #f])))
 
 (define (wrap-body breader body-expr)
   (if (body-reader-lazy? breader)

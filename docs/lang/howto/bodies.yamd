@@ -34,6 +34,6 @@ Corner cases:
 #list
 	#item: Brace body XOR colon body: #code|{#name{a}: b}| is not two bodies — a call takes one form or the other.
 	#item: Braces must balance inside #code|{{body}}|; for unbalanced content use a fence (see the fences page).
-	#item: A call with an inline body cannot also take an indented block body — the block form requires the call to be alone on its line.
+	#item: A call with an inline body takes an indented block body only via an explicit trailing #code{:} (#code|{#section{Title}:}| over a block). Without the #code{:}, an indented block follows only a #emph{bare} call — see the indented-blocks page.
 	#item: Multi-body works for any function taking several content arguments (#code{#row}, #code{#section}, even #code{#emph}).
 	#item: There must be exactly one space after the #code{:} introducer; the formatter normalizes extra spaces there.
