@@ -10,6 +10,9 @@ sources are the reference: every construct below appears in a file here, and
 - **`raw-html/`** — a single page using the raw-HTML escape hatch, kept
   separate because raw HTML is deliberately non-portable (see
   [The escape hatch](#the-escape-hatch-and-why-it-lives-apart)).
+- **`control.yamd`** — a single page showing host-language control flow:
+  `#(for/list …)` loops that generate content (two 15-element lists) and
+  `#(if …)` / `#(cond …)` conditionals.
 
 Where to find what in `book/`:
 

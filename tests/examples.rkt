@@ -104,6 +104,17 @@
   (check-exn #rx"raw node for backend html cannot be rendered to typst"
              (lambda () (build "raw-html/index.yamd" 'multi #:backend ty-backend)))
 
+  ;; --- examples/control: host-language loops and conditionals -------------
+
+  (let ([out (single-text "control.yamd")])
+    ;; two 15-element loops → 30 <li>; the fizz/buzz cond and parity if fired
+    (check-equal? (length (regexp-match* #rx"<li>" out)) 30)
+    (check-regexp-match #rx"Item 15" out)
+    (check-regexp-match #rx"even" out)
+    (check-regexp-match #rx"odd" out)
+    (check-regexp-match #rx"fizzbuzz" out)
+    (check-regexp-match #rx"<strong>ready</strong>" out))
+
   ;; --- every example source is formatter-clean ----------------------------
 
   (for ([p (in-directory examples-dir)]

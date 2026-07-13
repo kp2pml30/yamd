@@ -1,0 +1,39 @@
+#use(std/code)
+
+#section{Control flow}::
+
+A YAMD document is a Racket program, so control flow needs no special syntax:
+it is ordinary host code inside a #code{#(...)} escape. On its own line the
+escape is a statement; inline it is an expression whose value becomes content.
+A loop in a body position splices the content it returns.
+
+#code|{#(for/list ([n (in-range 1 16)]) …)}| runs its body fifteen times and
+splices the fifteen values it returns. Each #code{#item} re-enters markup, and
+#code{#(n)} reads the loop variable — an inline #code{#(if …)} tags the parity:
+
+#list(style: "1")
+	#(for/list ([n (in-range 1 16)])
+		#item{Item #(n) — #(if (even? n) "even" "odd")})
+
+Statement-position #code{#(if …)} chooses whole blocks of content:
+
+#(define ready #t)
+
+#(if ready
+	#para{The system is #strong{ready}.}
+	#para{Still warming up…})
+
+For several branches #code{#(cond …)} is clearest. A #code{#(define …)}
+statement names a helper the loop then calls — here the classic fizz/buzz over
+the same fifteen numbers:
+
+#(define (label n)
+	(cond
+		[(zero? (modulo n 15)) "fizzbuzz"]
+		[(zero? (modulo n 3)) "fizz"]
+		[(zero? (modulo n 5)) "buzz"]
+		[else (number->string n)]))
+
+#list
+	#(for/list ([n (in-range 1 16)])
+		#item{#(label n)})
