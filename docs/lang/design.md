@@ -32,8 +32,9 @@ given indent level belong to the enclosing block.
 | `#name(args)` | Call. `args` is host code (keyword args welcome; no commas — `,` is Racket unquote. `#use` alone tolerates them). |
 | `#name(args){body}` | Call with inline body. Body is markup by default; parsed to content and passed as the last argument. Braces must balance. |
 | `#name(args): text` | Call with body = rest of line. |
-| `#name(args):` at end of line | Call with body = following indented block (works even with inline bodies, e.g. `#section{Title}:`). A `:` with nothing indented below is literal text, not a body. |
+| `#name(args):` at end of line | Call with body = following indented block. The `:` is optional (see the row below); with an inline body a `:` and nothing indented below is literal text, not a body. |
 | `#name(args)::` | Call with body = rest of the **enclosing block** (see Hanging blocks). |
+| `#name(args){body}` alone on a line | Body = the `{body}` plus the following indented block (the trailing `:` above is optional sugar; `#section{Title}` and `#section{Title}:` are the same form). |
 | `#name(args)` alone on a line | Sugar for `#name(args):` — body = following indented block. |
 | `#(expr)` | Host escape. Statement position → statement (e.g. `#(define …)`); inline → expression, result converted to content. |
 | `##` | Literal `#`. |
@@ -75,11 +76,12 @@ Scoping is host scoping; defines inside a block are local to that block.
 			#item: nested
 ```
 
-- A block body is the following lines indented one level deeper. It is
-  introduced by a trailing `:` on the call line; a bare call alone on its line
-  is sugar for that trailing `:` (so `#foo` over a block *means* `#foo:` over
-  it, not vice versa). A call that already has an inline body needs the
-  explicit `:` to also take a block.
+- A block body is the following lines indented one level deeper. A call alone
+  on its line takes it — whether the call is bare (`#foo`) or already carries an
+  inline body (`#section{Title}`). A trailing `:` is optional sugar: `#foo`,
+  `#foo:`, `#section{Title}`, and `#section{Title}:` each take the block the
+  same way. (With an inline body, a `:` and *nothing* indented below is literal
+  text, not an empty body — so prose like `#code{index.yamd}:` stays intact.)
 - Dedent closes the block. Nesting = indentation; no `"-.1"`-style encodings
   needed (a `list` function may still accept them as sugar — its business).
 - Indentation is tabs only, single tab per level.

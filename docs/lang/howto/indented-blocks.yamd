@@ -46,19 +46,19 @@ Live:
 	second para
 tail
 
-The explicit #code{:} is what lets a call that already has an inline body
-(here the section title) still take an indented block — the bare-call sugar
-does not apply once a #code|{{body}}| is present:
+A call that already has an inline body (here the section title) still takes an
+indented block when it is alone on its line — the bare-call block form applies
+whether or not a #code|{{body}}| is present. A trailing #code{:} is optional:
 
 #code(lang: "plain")
-	#section{A titled section}:
-		Its content is the indented block below the colon.
+	#section{A titled section}
+		Its content is the indented block below.
 
 Corner cases:
 
 #list
 	#item: A line starting with spaces at a structure position is a reader error; so is jumping more than one level deeper at once.
-	#item: The bare-call sugar applies only with #emph{no} inline body. A call that already carries an inline #code|{{body}}| keeps its block only via an explicit #code{:}: #code|{#section{Title}}| over an indented block is an error, but #code|{#section{Title}:}| over it works — title plus block content. (#code|{#section{Title}::}| is the un-indented #emph{hanging} variant; see the hanging-blocks page.)
-	#item: A trailing #code{:} introduces a block #emph{only} when a deeper line follows. #code|{#code{index.yamd}:}| with nothing indented below is not an empty body — the #code{:} stays literal text (sentence punctuation). With no inline body, #code|{#name:}| at end of line is still an empty rest-of-line body, and #code|{#name: text}| is still a rest-of-line body.
+	#item: A call alone on its line takes the following indented block whether or not it has an inline #code|{{body}}|, and whether or not a trailing #code{:} is present — #code|{#section{Title}}| and #code|{#section{Title}:}| over the same block are the same form (title plus block content). (#code|{#section{Title}::}| is the un-indented #emph{hanging} variant; see the hanging-blocks page.)
+	#item: With an inline body, a trailing #code{:} introduces a block #emph{only} when a deeper line follows. #code|{#code{index.yamd}:}| with nothing indented below is not an empty body — the #code{:} stays literal text (sentence punctuation). With no inline body, #code|{#name:}| at end of line is still an empty rest-of-line body, and #code|{#name: text}| is still a rest-of-line body.
 	#item: A #code{: text} rest-of-line body followed by a deeper line is an error, not a guessed block — the body is already taken, so the deeper line is an orphan indent.
 	#item: Raw block bodies (e.g. #code{#code}) strip one leading tab per level and keep everything after verbatim, including leading spaces — see the code page.

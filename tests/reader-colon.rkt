@@ -22,6 +22,21 @@
     (check-equal? (html "#section{T}:\n\tbody\n")
                   (html "#section{T}::\nbody\n")))
 
+  ;; --- the trailing `:` is optional: brace body + block, colon or not -----
+  (test-case "#section{Title} block equals #section{Title}: block"
+    ;; The two spellings are the same form (the `:` is optional sugar).
+    (check-equal? (html "#section{T}\n\tbody\n")
+                  (html "#section{T}:\n\tbody\n")))
+
+  (test-case "no-colon titled block renders title + block content"
+    (check-equal? (html "#section{Alpha}\n\tBody.\n")
+                  "<section><h1 id=\"sec-1\">Alpha</h1>Body.\n</section>"))
+
+  (test-case "no-colon multi-body call still takes the block"
+    ;; A brace-bodied call with more than one inline body also grabs the block.
+    (check-equal? (html "#emph{a}\n\tbody\n")
+                  (html "#emph{a}:\n\tbody\n")))
+
   (test-case "#section{Title}: renders title + block content"
     ;; A single content line is not <p>-wrapped (matches the hanging form);
     ;; multi-paragraph content is (see the colon-titled golden).
