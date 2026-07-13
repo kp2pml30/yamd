@@ -55,11 +55,11 @@ A `.yamd` file (indentation is **tabs**):
 
 Use #emph{emphasis} and #strong{bold} inline.
 
-#list(style: "1")
+#list
 	#item: First item
 	#item
 		Second item with a nested list:
-		#list
+		#list(style: "-")
 			#item: nested a
 			#item: nested b
 

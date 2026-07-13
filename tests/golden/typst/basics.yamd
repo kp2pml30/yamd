@@ -2,11 +2,11 @@
 
 Some #emph{emphasised} and #strong{bold} text with a #link("https://example.com"){link}.
 
-#list(style: "1")
+#list
 	#item: First
 	#item
 		Second, with a nested bulleted list:
-		#list
+		#list(style: "-")
 			#item: alpha
 			#item: beta
 	#item: Third

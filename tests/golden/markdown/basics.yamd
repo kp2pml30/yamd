@@ -1,10 +1,10 @@
 #section{Introduction}{An intro with #emph{emphasis}, #strong{bold}, #tt{code}, and a #link("https://example.com"){link}.}
 #section{Steps}{Follow the numbered steps.}
-#list(style: "1")
+#list
 	#item: First
 	#item
 		Second, with a nested bulleted list:
-		#list
+		#list(style: "-")
 			#item: nested a
 			#item: nested b
 	#item: Third

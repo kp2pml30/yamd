@@ -183,20 +183,23 @@
 ;; ---------------------------------------------------------------------------
 ;; Lists
 
-;; #list(style: s){#item…} — an <ul> (no style) or <ol type=s> (style in
-;; 1/a/A/i/I). Direct children must be #item (<li>) elements; structural
+;; #list(style: s){#item…} — an <ol type="1"> by default, an <ol type=s> for
+;; 1/a/A/i/I, or an <ul> for -/*. Direct children must be #item (<li>) elements; structural
 ;; whitespace and paragraph breaks between items are dropped, anything else is
 ;; an explicit error (no silent coercion). Nesting is by putting a #list inside
 ;; an #item body.
-(define (yamd-list #:style [style #f] . bodies)
+(define (yamd-list #:style [style "1"] . bodies)
   (define items (collect-list-items 'list bodies))
   (cond
-    [(not style) (apply elem 'ul items)]
+    [(ul-type style) (apply elem 'ul items)]
     [(ol-type style)
      => (lambda (type) (apply elem 'ol #:attrs (list (cons 'type type)) items))]
     [else
-     (error 'list "unknown list style ~s; use one of \"1\" \"a\" \"A\" \"i\" \"I\" (or omit for a bulleted list)"
+     (error 'list "unknown list style ~s; use one of \"1\" \"a\" \"A\" \"i\" \"I\" \"-\" \"*\""
             style)]))
+
+(define (ul-type style)
+  (member style '("-" "*")))
 
 (define (ol-type style)
   (and (member style '("1" "a" "A" "i" "I")) style))
@@ -265,11 +268,15 @@
 
   ;; --- lists --------------------------------------------------------------
   (check-equal? (yamd-list (item "a") (item "b"))
+                (elem 'ol #:attrs '((type . "1")) (elem 'li "a") (elem 'li "b")))
+  (check-equal? (yamd-list #:style "-" (item "a") (item "b"))
+                (elem 'ul (elem 'li "a") (elem 'li "b")))
+  (check-equal? (yamd-list #:style "*" (item "a") (item "b"))
                 (elem 'ul (elem 'li "a") (elem 'li "b")))
   (check-equal? (yamd-list #:style "1" (item "a"))
                 (elem 'ol #:attrs '((type . "1")) (elem 'li "a")))
   ;; structural whitespace / para-breaks between items are dropped
-  (check-equal? (yamd-list "\n" (item "a") (para-break) "  " (item "b"))
+  (check-equal? (yamd-list #:style "-" "\n" (item "a") (para-break) "  " (item "b"))
                 (elem 'ul (elem 'li "a") (elem 'li "b")))
   (check-exn #rx"only contain #item" (lambda () (yamd-list "stray")))
   (check-exn #rx"unknown list style" (lambda () (yamd-list #:style "z" (item "a"))))

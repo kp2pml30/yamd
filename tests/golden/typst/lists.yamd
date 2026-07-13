@@ -1,4 +1,4 @@
-#list
+#list(style: "-")
 	#item
 		First paragraph of the item.
 
@@ -6,6 +6,6 @@
 	#item: A simple one-line item.
 	#item
 		Lead text, then a nested list:
-		#list
+		#list(style: "*")
 			#item: nested a
 			#item: nested b

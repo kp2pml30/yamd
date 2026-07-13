@@ -2,35 +2,36 @@
 
 #section{Lists}::
 
-#code{#list} + #code{#item}. Without arguments it is a bulleted list;
+#code{#list} + #code{#item}. Without arguments it is an ordered list;
 #code{style: s} with #code{s} one of #code{"1"}, #code{"a"}, #code{"A"},
-#code{"i"}, #code{"I"} makes it ordered. Nesting is a #code{#list} inside an
-#code{#item} body — structure comes from indentation, nothing else.
+#code{"i"}, #code{"I"} selects ordered numbering, and #code{"-"} / #code{"*"}
+selects a bulleted list. Nesting is a #code{#list} inside an #code{#item}
+body — structure comes from indentation, nothing else.
 
 #code(lang: "plain")
-	#list(style: "1")
+	#list
 		#item: First
 		#item
 			Second, with a nested bulleted list:
-			#list
+			#list(style: "-")
 				#item: nested a
 				#item: nested b
 		#item: Third
 
 Live:
 
-#list(style: "1")
+#list
 	#item: First
 	#item
 		Second, with a nested bulleted list:
-		#list
+		#list(style: "-")
 			#item: nested a
 			#item: nested b
 	#item: Third
 
 Corner cases:
 
-#list
+#list(style: "-")
 	#item: A list body may contain only #code{#item} children; whitespace and blank lines between items are dropped, anything else is an explicit error — no silent coercion.
 	#item: An unknown #code{style:} is an error listing the valid ones.
 	#item: An #code{#item} with an indented block body may hold multiple paragraphs (separate them with blank lines).
