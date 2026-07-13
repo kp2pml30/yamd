@@ -15,17 +15,17 @@
 
   (define-runtime-path lang-index "../docs/lang/index.yamd")
 
-  ;; The shipped docs: stdlib's live #doc-ref("howto/pipe-tables") resolves to a
-  ;; cross-page link to the pipe-tables how-to (and the whole tree builds).
-  (test-case "shipped docs: stdlib #doc-ref resolves cross-set"
+  ;; The shipped docs: the tables guide's live #doc-ref resolves to a cross-page
+  ;; link to the pipe-tables page (and the whole tree builds).
+  (test-case "shipped docs: a live #doc-ref resolves cross-set"
     (define outs (build-docset lang-index #:strategy multi-file-strategy #:backend hb))
-    (define stdlib
+    (define tables
       (for/first ([o (in-list outs)]
-                  #:when (equal? (build-output-path o) "spec/stdlib.html")) o))
-    (check-true (and stdlib #t) "spec/stdlib.html was produced")
+                  #:when (equal? (build-output-path o) "stdlib/elements/tables.html")) o))
+    (check-true (and tables #t) "stdlib/elements/tables.html was produced")
     (check-regexp-match
-     #px"<a href=\"[^\"]*pipe-tables\\.html#[^\"]+\">separate plugin</a>"
-     (build-output-text stdlib)))
+     #px"<a href=\"[^\"]*pipe-tables\\.html#[^\"]+\">pipe-tables page</a>"
+     (build-output-text tables)))
 
   ;; Build a temp doc-set from the given sources, hand the root path to `proc`.
   (define (with-set root-body sub-body proc)

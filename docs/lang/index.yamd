@@ -35,7 +35,9 @@ Non-goals:
 
 #toctree(numbered: #t depth: 2)
 	spec/index.yamd
-	howto/index.yamd
+	syntax/index.yamd
+	stdlib/index.yamd
+	cli/index.yamd
 
 #section{Consciously accepted tradeoffs}
 	#list

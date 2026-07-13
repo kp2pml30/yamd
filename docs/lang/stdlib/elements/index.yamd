@@ -1,0 +1,15 @@
+#use(std/toctree)
+
+#section{Content elements}::
+
+Calls that produce document content — lists and sections, media, code, math
+and tables.
+
+#toctree(depth: 2)
+	lists.yamd
+	sections.yamd
+	media.yamd
+	code.yamd
+	math.yamd
+	tables.yamd
+	pipe-tables.yamd

@@ -1,5 +1,6 @@
 #use(std/code)
 #use(std/table)
+#use(std/xref)
 
 #section{Tables}::
 
@@ -29,4 +30,4 @@ Corner cases:
 #list
 	#item: Without #code{header:} there is no #code{<thead>}; all rows are body rows.
 	#item: A positional #code|{#row{a}{b}}| wraps each body in a plain cell; use nested #code{#cell} when a cell needs its own block content.
-	#item: For source-beautiful plain-text tables see the pipe-tables page — a separate, deliberately dumb plugin.
+	#item: For source-beautiful plain-text tables see the #doc-ref("stdlib/elements/pipe-tables"){pipe-tables page} — a separate plugin.

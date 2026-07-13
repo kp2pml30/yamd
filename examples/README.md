@@ -203,8 +203,7 @@ Every file here stays `--fmt --check` clean; `tests/examples.rkt` enforces it.
 
 ## Further reading
 
-- [docs/lang/index.yamd](../docs/lang/index.yamd) — the language specification.
-- [docs/lang/howto/](../docs/lang/howto/) — task-oriented how-to guides.
+- [docs/lang/index.yamd](../docs/lang/index.yamd) — the language docs (spec + per-feature guides).
 - [docs/multi-doc.md](../docs/multi-doc.md) — document sets, `#toctree`,
   `#include`, build strategies.
 - [docs/architecture.md](../docs/architecture.md) — implementation internals

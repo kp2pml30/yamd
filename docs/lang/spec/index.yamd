@@ -3,11 +3,9 @@
 
 #section{Language specification}::
 
-The reference for YAMD's surface syntax, its extensibility primitives, the
-bundled standard library, and how documents are rendered. Each chapter is a
-standalone page; read them in order or jump to one.
+The reference for YAMD's surface syntax and its extensibility primitives. The
+bundled library is documented by example under the standard-library guides.
 
-#toctree(numbered: #t depth: 2)
+#toctree(depth: 2)
 	syntax.yamd
 	extending.yamd
-	stdlib.yamd

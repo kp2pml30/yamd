@@ -52,12 +52,12 @@ doc-set — it would embed this whole how-to's outline into the page.
 	silent.
 
 	#code(lang: "plain")
-		See the #doc-ref("tables"){tables guide}, or #doc-ref("pipe-tables").
+		See the #doc-ref("stdlib/elements/tables"){tables guide}.
 
 	No live demo here: the path is resolved against the #emph{build root}, so its
 	exact spelling depends on how the set is built — this page's own path is
-	#code{xref} when the how-to is built alone, #code{howto/xref} when it is
-	nested under the language index. Unlike #code{#link} (a verbatim URL), the
+	#code{xref} when the links guides are built alone, #code{stdlib/links/xref}
+	when nested under the language index. Unlike #code{#link} (a verbatim URL), the
 	path is a document identity, so it survives the single/multi build split — an
 	in-page anchor when the set is inlined into one page, a #code{page.html#…}
 	cross-page link in multi-file — and file moves within the set. Pin

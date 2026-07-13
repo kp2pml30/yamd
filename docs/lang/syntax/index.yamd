@@ -1,0 +1,16 @@
+#use(std/toctree)
+
+#section{Syntax}::
+
+Guides to YAMD's surface syntax — one page per form, each with a live snippet.
+The terse form table is in the specification; these pages show each form in use.
+
+#toctree(depth: 2)
+	text.yamd
+	calls.yamd
+	bodies.yamd
+	indented-blocks.yamd
+	hanging-blocks.yamd
+	fences.yamd
+	host.yamd
+	contexts.yamd
