@@ -1,8 +1,8 @@
 # YAMD — Implementation Architecture
 
-Concrete architecture for the Racket implementation of [lang/design.yamd](lang/design.yamd).
-lang/design.yamd is the language spec; this file decides *how* it is built. Where the
-two disagree, lang/design.yamd wins on language semantics, this file wins on code
+Concrete architecture for the Racket implementation of [lang/index.yamd](lang/index.yamd).
+lang/index.yamd is the language spec; this file decides *how* it is built. Where the
+two disagree, lang/index.yamd wins on language semantics, this file wins on code
 structure. Skeleton status is marked; every module already has its final
 name and location — do not move files.
 

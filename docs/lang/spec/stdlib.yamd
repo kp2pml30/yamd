@@ -1,0 +1,27 @@
+#use(std/code)
+
+#section{Standard library}::
+
+#section{Tables}
+	Mainly support HTML-like cells:
+
+	#code(lang: "plain")
+		#table(header: 1)
+			#row
+				#cell: Name
+				#cell: Role
+			#row{Kiril}{infra}
+
+	#list
+		#item: #code|{#row{a}{b}}| positional multi-body form is supported.
+		#item: A #emph{source-beautiful} pipe-table plugin (#code{Name | Role | Since}) exists as a separate plugin and is allowed to be pretty dumb.
+
+#section{Cross-references / glossary (stdlib, via two-pass)}
+	#code(lang: "plain")
+		#def("vm"){virtual machine}{A sandboxed execution environment.}
+		…deterministic #ref("vm") semantics…
+		#glossary
+
+	#code{def} records in collect; #code{ref}/#code{glossary} resolve in the
+	second pass. Same machinery serves TOC, numbering, citations, links and
+	backlinks.

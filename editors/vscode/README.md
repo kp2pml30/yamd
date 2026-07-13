@@ -1,6 +1,6 @@
 # YAMD — VS Code extension
 
-Syntax highlighting for [YAMD](../../docs/lang/design.yamd), an indentation-based markup
+Syntax highlighting for [YAMD](../../docs/lang/index.yamd), an indentation-based markup
 language that compiles to an element IR. This is a **static** extension: no
 build step, no `node_modules`, no activation code. It contributes a language
 definition, a TextMate grammar, and a language configuration only.

@@ -1,0 +1,103 @@
+#use(std/code)
+#use(std/table)
+
+#section{Syntax}::
+
+#section{Text mode}
+	Plain text is content. Structure is defined by indentation (tabs). Lines
+	at a given indent level belong to the enclosing block.
+
+	#table(header: 1)
+		#row
+			#cell: Form
+			#cell: Meaning
+		#row
+			#cell: #code{#name(args)}
+			#cell: Call. #code{args} is host code (keyword args welcome; no commas — #code{,} is Racket unquote. #code{#use} alone tolerates them).
+		#row
+			#cell: #code|{#name(args){body}}|
+			#cell: Call with inline body. Body is markup by default; parsed to content and passed as the last argument. Braces must balance.
+		#row
+			#cell: #code{#name(args): text}
+			#cell: Call with body = rest of line.
+		#row
+			#cell: #code{#name(args):} at end of line
+			#cell: Call with body = following indented block. The #code{:} is optional (see the row below); with an inline body a #code{:} and nothing indented below is literal text, not a body.
+		#row
+			#cell: #code{#name(args)::}
+			#cell: Call with body = rest of the #strong{enclosing block} (see Hanging blocks).
+		#row
+			#cell: #code|{#name(args){body}}| alone on a line
+			#cell: Body = the #code|{{body}}| plus the following indented block (the trailing #code{:} is optional sugar; #code|{#section{Title}}| and #code|{#section{Title}:}| are the same form).
+		#row
+			#cell: #code{#name(args)} alone on a line
+			#cell: Sugar for #code{#name(args):} — body = following indented block.
+		#row
+			#cell: #code{#(expr)}
+			#cell: Host escape. Statement position → statement (e.g. #code{#(define …)}); inline → expression, result converted to content.
+		#row
+			#cell: #code{##}
+			#cell: Literal #code{#}.
+		#row
+			#cell: #code{# }, #code{#;} / #code|{#;{…}}|
+			#cell: Line / block comment.
+
+	#code{(args)} and #code|{{body}}| are each optional. #code{#name} bare
+	is a zero-arg call.
+
+#section{Host mode}
+	Inside #code{#(...)} and #code{(args)} you are in the host language.
+	#code|{#name{…}}| / #code|{#…{markup}}| re-enters text mode, producing a
+	content value (Scribble semantics). Example:
+
+	#code(lang: "plain")
+		#(for ([x items])
+			#p{#(item-name x) — #(item-price x)¥})
+
+#section{Variables, metadata}
+	#code(lang: "plain")
+		#(define price 42)
+		The item costs #(price).
+
+		#(meta 'date "2025-01-01")   ; writes document state (collect pass)
+		Published: #(get-meta 'date) ; reads on resolve pass — order-independent
+
+	Scoping is host scoping; defines inside a block are local to that block.
+
+#section{Blocks and indentation}
+	#code(lang: "plain")
+		#list(style: "1")
+			#item: First
+			#item
+				Second, multi-line
+				#list(style: "a")
+					#item: nested
+
+	#list
+		#item: A block body is the following lines indented one level deeper. A call alone on its line takes it — whether the call is bare (#code{#foo}) or already carries an inline body (#code|{#section{Title}}|). A trailing #code{:} is optional sugar: #code{#foo}, #code{#foo:}, #code|{#section{Title}}|, and #code|{#section{Title}:}| each take the block the same way. (With an inline body, a #code{:} and #emph{nothing} indented below is literal text, not an empty body — so prose like #code{#code{index.yamd}:} stays intact.)
+		#item: Dedent closes the block. Nesting = indentation; no #code{"-.1"}-style encodings needed (a #code{list} function may still accept them as sugar — its business).
+		#item: Indentation is tabs only, single tab per level.
+
+	#section{Hanging blocks (::)}
+		#code{::} folds the #emph{rest of the current block} into the call's
+		body, without indentation:
+
+		#code(lang: "plain")
+			#section{Motivation}::
+
+			Everything until the enclosing dedent/EOF is inside the section.
+			#note: including this.
+
+		#list
+			#item: Pure reader-level transform; evaluation sees an ordinary body.
+			#item: Recursive: a later #code{::} at the same level nests inside the earlier one. Flat LaTeX-style sectioning, if wanted, is implemented by the #code{section} function (level-aware), not by the reader.
+			#item: #code{::} at top level = rest of file (useful for #code{#template(...)::}).
+
+#section{Contexts}
+	Host-language tweaks live in #strong{contexts} that are auto-scoped: by
+	default all settings go to the current context. #code{#fork-context::}
+	forks the current context for the rest of the enclosing block; block-bodied
+	calls fork implicitly where it makes sense. Contexts also drive
+	auto-detection, e.g. #code{section} stores the current header level in the
+	context, so nesting depth determines #code{<h1>}/#code{<h2>}/… without
+	explicit levels.

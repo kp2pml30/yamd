@@ -3,12 +3,37 @@
 
 #section{Yet Another Mark Down language}::
 
-An indentation-based markup language that compiles to an element IR (HTML
-first). One sigil (#code{#}), one form per role (calls), and documents that
-are programs in a pluggable host — headings, lists, links, tables and math
-are all library functions, not syntax.
+Indentation-based markup language compiling to an element IR (HTML backend first).
+
+Inspiration, without any particular order:
+
+#list
+	#item: typst, latex
+	#item: ruby, haml, erb
+	#item: sphinx
+
+Non-goals: being HTML; being tied to Ruby. The host language is pluggable in
+principle, but a document is a program in #emph{one} host (reference implementation: Racket).
+
+#section{Core principles}
+	#list
+		#item: #strong{One sigil.} #code{#} is the only globally special character. Every other symbol (#code{|}, #code{*}, #code{$}, …) is plain text unless a surrounding function's reader gives it meaning.
+		#item: #strong{One form per role.} Call, comment, escape — nothing else. Headings, lists, links, tables, math are all library functions, not syntax.
+		#item: #strong{Documents are programs.} The sigil escapes from text mode into host mode; #code{{}} escapes back. Turing completeness comes from the host, not from a template mini-language.
+		#item: #strong{Two-pass evaluation} (collect → resolve) for cross-references, TOC, numbering, glossaries.
 
 
 #toctree(numbered: #t depth: 2)
-	design.yamd
+	spec/index.yamd
 	howto/index.yamd
+
+#section{Consciously accepted tradeoffs}
+	#list
+		#item: Documents are programs: no sandboxed rendering of untrusted documents; incremental/parallel builds are harder
+		#item: One host at a time: a Ruby YAMD and a Racket YAMD would be different languages sharing a surface syntax
+		#item
+			#code{#} collides with hex colors, "issue ##42", shebangs in prose - mitigated by #code{##} and by code living in raw bodies.
+		#item: Indentation: tabs only, single tab per level
+		#item: #code{args} grammar: full host expressions
+		#item: trailing #code{::}: no "until next same-name #code{::}" flat variant for now
+		#item: Inline math: #code{#m{…}} only, no reader-macro shorthand

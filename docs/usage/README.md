@@ -43,7 +43,7 @@ it preserves Racket's default paths).
 
 ## Writing documents
 
-The language itself is documented in [docs/lang/](../lang/design.yamd); the
+The language itself is documented in [docs/lang/](../lang/index.yamd); the
 per-feature guides live in [docs/lang/howto/](../lang/howto/) as a YAMD
 doc-set (render it with `nix run <yamd-flake> -- docs/lang/howto/index.yamd`).
 A complete worked example, including a project-local plugin, is under

@@ -15,22 +15,22 @@ the cross-reference pages list definitions from the whole set.
 
 #toctree(numbered: #t depth: 2)
 	text-basics.yamd
+	comments.yamd
 	calls.yamd
 	bodies.yamd
 	indented-blocks.yamd
 	hanging-blocks.yamd
-	comments.yamd
-	host-escapes.yamd
 	fences.yamd
+	host-escapes.yamd
 	use-plugins.yamd
 	contexts.yamd
 	sections.yamd
 	lists.yamd
 	media.yamd
-	tables.yamd
-	pipe-tables.yamd
 	code.yamd
 	math.yamd
+	tables.yamd
+	pipe-tables.yamd
 	xref.yamd
 	footnotes.yamd
 	rfc2119.yamd
