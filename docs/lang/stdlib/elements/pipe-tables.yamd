@@ -1,12 +1,12 @@
 #use(std/code)
 #use(std/pipe-table)
 
-#section{Pipe tables}::
+#section{Pipe Tables}::
 
 #code{#use(std/pipe-table)} provides #code{#ptable} — a source-beautiful
 plain-text table with a custom body reader: one row per line, cells split on
 #code{|}, first row is the header. It is allowed to be pretty dumb, on
-purpose; for markup in cells or anything structural, use #code{std/table}.
+purpose; for markup in cells or anything structural, use #code{std/table}
 
 #code(lang: "plain")
 	#ptable
@@ -37,7 +37,9 @@ Live:
 Corner cases:
 
 #list
-	#item: The body is a custom (non-markup) reader: cell text is plain — #code{#emph{…}} in a cell would be literal text, not markup. That dumbness is the plugin's contract.
-	#item: Cell padding spaces are trimmed; alignment in the source is purely cosmetic.
-	#item: There is no escape for a literal #code{|} in a cell — #code{|} always splits.
-	#item: The first row is always the header; a ragged row (wrong column count) and an empty body are explicit errors.
+	#item
+		The body is a custom (non-markup) reader: cell text is plain — #code{#emph{…}} in a cell would be literal text,
+		not markup. That dumbness is the plugin's contract
+	#item: Cell padding spaces are trimmed; alignment in the source is purely cosmetic
+	#item: There is no escape for a literal #code{|} in a cell — #code{|} always splits
+	#item: The first row is always the header; a ragged row (wrong column count) and an empty body are explicit errors

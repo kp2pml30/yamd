@@ -1,9 +1,9 @@
 #use(std/toctree)
 
-#section{Multi-document sets}::
+#section{Multi-Document Sets}::
 
 Composing a document from many files: plugin loading, file includes, and
-sphinx-style toctrees.
+sphinx-style toctrees
 
 #toctree(depth: 2)
 	use-plugins.yamd

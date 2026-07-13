@@ -1,6 +1,6 @@
 #use(std/code)
 
-#section{Command line}::
+#section{Command Line}::
 
 Render a document with the bundled CLI (or #code{nix run . --} in place of
 #code{racket -l- yamd/cli}):
@@ -14,11 +14,17 @@ Render a document with the bundled CLI (or #code{nix run . --} in place of
 Flags:
 
 #list
-	#item: #code{--backend html|markdown|typst} — output serialization (default #code{html}); see the backends page.
-	#item: #code{--mode single|multi} — build strategy (default #code{single}). #code{single} produces one output (toctree children inlined, headings shifted); #code{multi} requires #code{-o <directory>} and writes one page per source document, subdirectories preserved, with prev/up/next navigation and cross-page links rewritten.
-	#item: #code{-o out} — output file (single) or directory (multi); default stdout.
-	#item: #code{--root <dir>} — base directory for #code{#doc-ref} document ids (default: the input file's directory); see the cross-references page. Pin it to a stable root (e.g. a repo root) so #code{#doc-ref} paths stay the same no matter which sub-document you build.
-	#item: #code{--fmt [--check]} — the source formatter; see the formatting page.
+	#item: #code{--backend html|markdown|typst} — output serialization (default #code{html}); see the backends page
+	#item
+		#code{--mode single|multi} — build strategy (default #code{single}). #code{single} produces one output (toctree
+		children inlined, headings shifted); #code{multi} requires #code{-o <directory>} and writes one page per source
+		document, subdirectories preserved, with prev/up/next navigation and cross-page links rewritten
+	#item: #code{-o out} — output file (single) or directory (multi); default stdout
+	#item
+		#code{--root <dir>} — base directory for #code{#doc-ref} document ids (default: the input file's directory); see
+		the cross-references page. Pin it to a stable root (e.g. a repo root) so #code{#doc-ref} paths stay the same no
+		matter which sub-document you build
+	#item: #code{--fmt [--check]} — the source formatter; see the formatting page
 
 A document may instead be a Racket module by starting with #code{#lang yamd}:
 
@@ -33,7 +39,7 @@ programmatic export — and running it directly (#code{racket file.rkt})
 prints the rendered HTML via its #code{main} submodule. #code{#use},
 plugins, contexts and two-pass behave identically to the CLI pipeline: the
 module re-runs the same pipeline at instantiation (it is #strong{not}
-compiled to Racket code).
+compiled to Racket code)
 
 From Racket, the same pipeline is a library:
 
@@ -45,7 +51,9 @@ From Racket, the same pipeline is a library:
 Corner cases:
 
 #list
-	#item: Flags may follow the input file; parsing is permuted on purpose.
-	#item: Unknown backends and missing input files fail with a clean #code{yamd: …} message and exit 1, no stack trace.
-	#item: Backend modules are loaded only when selected — an unselected backend need not even exist.
-	#item: The CLI always routes through the doc-set builder, so toctree documents work; the plain #code{yamd-file->html} API errors on them.
+	#item: Flags may follow the input file; parsing is permuted on purpose
+	#item: Unknown backends and missing input files fail with a clean #code{yamd: …} message and exit 1, no stack trace
+	#item: Backend modules are loaded only when selected — an unselected backend need not even exist
+	#item
+		The CLI always routes through the doc-set builder, so toctree documents work; the plain #code{yamd-file->html} API
+		errors on them

@@ -1,9 +1,9 @@
 #use(std/toctree)
 
-#section{Cross-references and links}::
+#section{Cross-References and Links}::
 
 Two-pass linking: definitions and references, footnotes, and RFC 2119
-requirement keywords.
+requirement keywords
 
 #toctree(depth: 2)
 	xref.yamd

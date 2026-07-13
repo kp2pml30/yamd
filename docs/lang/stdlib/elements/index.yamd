@@ -1,9 +1,9 @@
 #use(std/toctree)
 
-#section{Content elements}::
+#section{Content Elements}::
 
 Calls that produce document content — lists and sections, media, code, math
-and tables.
+and tables
 
 #toctree(depth: 2)
 	lists.yamd

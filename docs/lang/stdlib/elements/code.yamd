@@ -7,7 +7,7 @@ and #code{#} inside are literal, nothing is interpreted. Block vs inline is
 decided by the #code{lang:} keyword: #code{#code(lang: "python")} + an
 indented block is a highlighted #code{<pre>} block; #code|{#code{…}}| is
 inline. Known languages: #code{gdscript}, #code{plain}, #code{python},
-#code{racket}.
+#code{racket}
 
 #code(lang: "plain")
 	#code(lang: "python")
@@ -24,7 +24,7 @@ Live:
 		msg = {"hi": name}  ## dict, raw braces
 		return msg
 
-Inline #code{x = 1} stays verbatim too.
+Inline #code{x = 1} stays verbatim too
 
 Leading spaces after the structural tabs are preserved verbatim — a raw block
 body has no interior structure, so space-indented code (and ASCII art) is
@@ -38,7 +38,10 @@ safe:
 Corner cases:
 
 #list
-	#item: Raw-ness is total: #code{#} is never a comment or call inside a #code{#code} body, and braces need not balance in the #emph{block} form (an inline body still scans for its closing brace — use a fence for unbalanced inline content).
-	#item: A plain, unhighlighted block is #code{#code(lang: "plain")}; an unknown #code{lang:} is an error listing the known ones.
-	#item: A raw block is terminated only by dedent (a non-blank line with fewer tabs); blank lines belong to the block.
-	#item: Deeper tabs inside the block stay literal tabs — only one structural tab per nesting level is stripped.
+	#item
+		Raw-ness is total: #code{#} is never a comment or call inside a #code{#code} body, and braces need not balance in
+		the #emph{block} form (an inline body still scans for its closing brace — use a fence for unbalanced inline
+		content)
+	#item: A plain, unhighlighted block is #code{#code(lang: "plain")}; an unknown #code{lang:} is an error listing the known ones
+	#item: A raw block is terminated only by dedent (a non-blank line with fewer tabs); blank lines belong to the block
+	#item: Deeper tabs inside the block stay literal tabs — only one structural tab per nesting level is stripped

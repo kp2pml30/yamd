@@ -1,6 +1,6 @@
 # Setup
 
-Prerequisite: [Nix](https://nixos.org) with flakes enabled.
+Prerequisite: [Nix](https://nixos.org) with flakes enabled
 
 From the repo root, enter the dev shell. This also installs the git hooks into
 `.git/hooks/` (via `git-hooks.nix`) and writes the gitignored
@@ -17,4 +17,4 @@ Link the in-tree `yamd` collection into the active Racket environment so
 raco pkg install --auto --batch --link yamd/
 ```
 
-You are ready to [build](building/build.md) and [test](testing/README.md).
+You are ready to [build](building/build.md) and [test](testing/README.md)

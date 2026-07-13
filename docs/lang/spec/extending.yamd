@@ -3,7 +3,7 @@
 
 #section{Extending YAMD}::
 
-#section{Body readers (the extensibility primitive)}
+#section{Body Readers (the Extensibility Primitive)}
 	A function may register a #strong{reader} for its body, consulted
 	#emph{before} parsing:
 
@@ -13,13 +13,15 @@
 			#cell: Behavior
 		#row
 			#cell: #code{markup} (default)
-			#cell: Full YAMD parsing.
+			#cell: Full YAMD parsing
 		#row
 			#cell: #code{raw}
-			#cell: Verbatim text. Block form: dedented, terminated only by dedent — no delimiter scanning at all. Inline form: brace-balanced scan, no #code{#} recognition.
+			#cell
+				Verbatim text. Block form: dedented, terminated only by dedent — no delimiter scanning at all. Inline form:
+				brace-balanced scan, no #code{#} recognition
 		#row
 			#cell: custom
-			#cell: Plugin-supplied parser (tables, math notations, …).
+			#cell: Plugin-supplied parser (tables, math notations, …)
 
 	Examples:
 
@@ -30,9 +32,9 @@
 
 		Inline #tt{x = 1} and math #m{sum_(i=0)^n i^2}.
 
-	Context-scoped symbols keep the global symbol budget at one.
+	Context-scoped symbols keep the global symbol budget at one
 
-	#section{Fences for pathological inline content}
+	#section{Fences for Pathological Inline Content}
 		Inline raw/markup bodies with unbalanced braces use alternative
 		delimiters (Scribble-style): #code|={|{ … }|}=|, extensible fence:
 
@@ -41,10 +43,14 @@
 			#tt|==={ even }| inside }===|
 
 		Opener #code|{|X{}| closes only at #code|{}X|}|. Block raw bodies never
-		need this.
+		need this
 
 #section{Plugins}
 	#list
-		#item: A plugin is a host module exporting functions (+ optional body readers).
-		#item: #code{#use(std/table, std/math: asciimath)} imports/binds; math notation (AsciiMath / LaTeX / typst-math) is chosen by the bound plugin — the core knows nothing about math.
-		#item: Project-level #emph{reader macros} (e.g. backtick spans → #code{#tt{…}}) are allowed as opt-in sugar on top of existing functions; never new core forms.
+		#item: A plugin is a host module exporting functions (+ optional body readers)
+		#item
+			#code{#use(std/table, std/math: asciimath)} imports/binds; math notation (AsciiMath / LaTeX / typst-math) is chosen
+			by the bound plugin — the core knows nothing about math
+		#item
+			Project-level #emph{reader macros} (e.g. backtick spans → #code{#tt{…}}) are allowed as opt-in sugar on top of
+			existing functions; never new core forms

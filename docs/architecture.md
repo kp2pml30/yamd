@@ -4,9 +4,9 @@ Concrete architecture for the Racket implementation of [lang/index.yamd](lang/in
 lang/index.yamd is the language spec; this file decides *how* it is built. Where the
 two disagree, lang/index.yamd wins on language semantics, this file wins on code
 structure. Skeleton status is marked; every module already has its final
-name and location — do not move files.
+name and location — do not move files
 
-## Package layout
+## Package Layout
 
 ```
 yamd/                      Racket package (raco pkg install --link yamd/)
@@ -42,14 +42,14 @@ editors/vscode/            [planned] VS Code extension (TextMate grammar)
 
 Core stays minimal: everything under `std/` except `base.rkt` is a plugin in
 the ABI sense (own module, own body readers, own golden dir) and must not be
-required by core modules.
+required by core modules
 
-## Typed / untyped boundary
+## Typed / Untyped Boundary
 
 **Typed** (`typed/racket/base`): `ir.rkt`, `passes.rkt`, `decode.rkt`,
 `backend/html.rkt`. These are closed data-model traversals; exhaustive typing
 over the `Content` union is exactly what catches missed-node-kind bugs in
-every backend/pass, and the types are the documentation for backend authors.
+every backend/pass, and the types are the documentation for backend authors
 
 **Untyped**: the reader (`reader/*.rkt`), `context.rkt`, `runtime.rkt`,
 `eval.rkt`, all of `std/`. Justification: the reader is port/char plumbing
@@ -59,7 +59,7 @@ and costs a lot of annotation and occurrence-typing friction around
 data and cross into typed code only through `elem`/struct constructors, which
 already carry contracts at the typed/untyped boundary. Keep it that way: new
 backends and IR passes go on the typed side, new reader features and plugins
-on the untyped side.
+on the untyped side
 
 ## Element IR (`yamd/ir.rkt`)
 
@@ -74,9 +74,9 @@ Content = (U String element raw delayed (Listof Content))
 (struct info    ([table : (Mutable-HashTable Any Any)]))
 ```
 
-- Lists are splices; consumers flatten transparently.
+- Lists are splices; consumers flatten transparently
 - `raw` is the backend escape hatch; a backend MUST error on raw nodes for a
-	different backend, never skip them silently.
+	different backend, never skip them silently
 - `raw`'s `block?` marks block-level raw content (e.g. `<div>`): `decode`
 	treats a block raw like a block element — it breaks the surrounding
 	paragraph and is emitted standalone instead of being wrapped in `<p>`
@@ -89,11 +89,11 @@ Content = (U String element raw delayed (Listof Content))
 	keeps the historical `(raw backend text)` shape for inline raw and appends
 	a trailing `'block` marker only for block raw, so existing inline goldens
 	do not churn. `std/html` exposes both forms: `html` (inline) and
-	`html-block` (block).
-- `elem` is the convenience constructor: `(elem 'em #:attrs ... #:loc ... child ...)`.
-- `content->sexp` is the stable debug/golden view of the IR.
+	`html-block` (block)
+- `elem` is the convenience constructor: `(elem 'em #:attrs ... #:loc ... child ...)`
+- `content->sexp` is the stable debug/golden view of the IR
 - Tags starting with `%` are reader/decode-internal (only `%para-break` so
-	far) and must never reach a backend (the HTML backend errors).
+	far) and must never reach a backend (the HTML backend errors)
 - `#linebreak`/`#pagebreak` (`std/base`) use plain, backend-recognizable
 	element tags rather than new IR node kinds. `#linebreak` is `(elem 'br)` —
 	inline (not a `decode` block tag), rendered `<br />` (HTML) / CommonMark
@@ -105,32 +105,32 @@ Content = (U String element raw delayed (Listof Content))
 	and Markdown emits as a raw HTML block; the Typst backend pattern-matches
 	this exact style and emits `#pagebreak()`. A styled `div` is preferred over
 	a dedicated `%`-tag (which backends reject as an internal leak) or a bespoke
-	tag like `'pagebreak` (which would serialize as literal `<pagebreak>`).
+	tag like `'pagebreak` (which would serialize as literal `<pagebreak>`)
 
-## The reader (`yamd/reader/reader.rkt`)
+## The Reader (`yamd/reader/reader.rkt`)
 
 `(yamd-read-syntax src in) -> (listof syntax?)` — top-level forms, evaluated
 in order by `eval.rkt`. Text mode is the default; `#` escapes to host mode;
-`{}` re-enters text mode. Every call form carries the srcloc of its `#`.
+`{}` re-enters text mode. Every call form carries the srcloc of its `#`
 
 Generated code shapes (the contract between reader and runtime):
 
-- text → string literals; each source line ends with a `"\n"` string; each
+- Text → string literals; each source line ends with a `"\n"` string; each
 	blank line (whitespace-only counts as blank) becomes `(para-break)` (a
 	`%para-break` element consumed by `decode-flow`). The reader normalizes
-	CRLF to LF before scanning.
+	CRLF to LF before scanning
 - `#name(args){b1}{b2}` → `(name arg... body1 body2)` — args spliced, then
 	one positional argument per body, each `(yamd-body expr...)` (a Content
-	list), wrapped as `(lambda () ...)` when the body reader says `lazy?`.
+	list), wrapped as `(lambda () ...)` when the body reader says `lazy?`
 - `#(expr)` inline → `(->content expr)`; alone on a line → the form itself as
-	a top-level statement (this is how `#(define ...)` works).
-- host-escape unwrap rule: the parens of `#(...)` delimit host code; exactly
+	a top-level statement (this is how `#(define ...)` works)
+- Host-escape unwrap rule: the parens of `#(...)` delimit host code; exactly
 	one datum inside means that datum is the expression (`#(price)` is a
 	variable reference), multiple datums form the compound form
-	(`#(define price 42)`, `#(item-name x)`). `#()` is an error.
-- args keyword sugar: an identifier ending in `:` inside `(args)` becomes a
+	(`#(define price 42)`, `#(item-name x)`). `#()` is an error
+- Args keyword sugar: an identifier ending in `:` inside `(args)` becomes a
 	keyword — `#list(style: "1")` reads as `(list #:style "1")`. Everything
-	else in `(args)` is verbatim host code (full expressions).
+	else in `(args)` is verbatim host code (full expressions)
 
 Form status: implemented now — plain text, `##`, comments (`#` + space/EOL,
 `#;` to EOL, `#;{...}` balanced possibly-multiline), `#(expr)` statement and
@@ -138,28 +138,28 @@ inline, `#name`, `#name(args)`, `#name{body}` (markup/raw/custom, nestable,
 multi-body, may span lines), `#name(args): rest-of-line`, host-mode markup re-entry (`#name{…}` inside
 `(args)` / `#(expr)`, see "Host-mode markup re-entry"), indented block bodies, `::`
 hanging blocks, `|{ }|` / `|==={ }===|` fences, `#use`, and definitions inside
-`{...}` bodies.
+`{...}` bodies
 
-### Indentation algorithm
+### Indentation Algorithm
 
 - Indentation is tabs only, one tab per level. A line starting with spaces
 	(before any tab-stripped content) is a reader error. Jumping more than one
-	level deeper is a reader error.
+	level deeper is a reader error
 - An indented block is legal only as the body of a call that is the *only*
 	thing on the preceding line (`#name`, `#name(args)` — bare or args, no
 	inline/`: ` body). Anything else followed by a deeper line is an error;
-	don't guess.
+	don't guess
 - Block body dispatch by the call's body reader: `markup` — parse the block
 	recursively at depth+1 (paragraph breaks and nested calls work); `raw` —
 	take lines verbatim with one leading tab stripped per level until dedent,
 	no delimiter scanning at all, blank lines belong to the block; custom —
-	gather the same dedented text and hand it to the parser with a srcloc.
+	gather the same dedented text and hand it to the parser with a srcloc
 - `::` (`#name(args)::` — nothing may follow on the line): reader-level
 	transform; parse the *remainder of the enclosing block* (same indent
 	level, until dedent/EOF) as the call's body. Recursive: a later `::` at
 	the same level ends up nested inside the earlier one, because it captures
-	the remainder of the block it now lives in. Top level = rest of file.
-- Blank lines never close blocks; only a non-blank line with fewer tabs does.
+	the remainder of the block it now lives in. Top level = rest of file
+- Blank lines never close blocks; only a non-blank line with fewer tabs does
 - **Spaces in raw/custom block bodies.** Leading spaces are a reader error at
 	*structure* positions (markup), but a raw/custom block body has no interior
 	structure — only the block's own structural tabs. Inside such a body only
@@ -178,27 +178,27 @@ hanging blocks, `|{ }|` / `|==={ }===|` fences, `#use`, and definitions inside
 	— trailing whitespace on an otherwise-empty line is not preserved. Inline
 	raw bodies (`#code{…}`) and fences (`|{…}|`) scan verbatim char-by-char and
 	were never affected. Markup block/`: rest-of-line` bodies are unchanged:
-	their structure positions still reject leading spaces.
+	their structure positions still reject leading spaces
 
 ### Fences
 
 `#name|{ ... }|` and `#name|==={ ... }===|`: opener `|X{` (X a possibly-empty
 run of `=`) closes only at `}X|`. Available for any inline body kind; raw
-scan, no `#` recognition, no brace counting. Block raw bodies never need them.
+scan, no `#` recognition, no brace counting. Block raw bodies never need them
 
-### Host-mode markup re-entry
+### Host-Mode Markup Re-Entry
 
 Inside host code — the `(args)` of a call and the `#(expr)` escape — `#name`
 re-enters text mode and reads as an expression evaluating to Content (DESIGN
-"Host mode", Scribble semantics): `#(for/list ([x items]) #p{item #(x)})`.
+"Host mode", Scribble semantics): `#(for/list ([x items]) #p{item #(x)})`
 
 Supported subset:
 
 - `#name{body}` — a markup body (re-enters text mode; nestable; may span
-  lines).
+  lines)
 - `#name(args){body}` — args (with the same `key:` keyword sugar as text
-  mode) plus one or more markup bodies (`#row{a}{b}`).
-- `#name(args)` — args, no body.
+  mode) plus one or more markup bodies (`#row{a}{b}`)
+- `#name(args)` — args, no body
 
 The body reader dispatches exactly as in text mode (markup / raw / custom /
 lazy), so `#m{…}` in host code still hits the AsciiMath parser, `#code{…}`
@@ -207,7 +207,7 @@ delimiter. Line-oriented body forms (`: rest-of-line`, `::` hanging) are NOT
 available in host mode — there is no "rest of line" inside an s-expression.
 A **bare** `#name` (no `{` and no `(`) is deliberately not re-entry: in host
 mode a zero-arg content call is just `(name)`, and treating `#name` as a call
-would collide with `#t`/`#f`/`#px…`.
+would collide with `#t`/`#f`/`#px…`
 
 **Mechanism.** `read-paren-datum` reads the host s-expression under a readtable
 that overrides `#` (`host-readtable`). For each `#` the Racket reader meets,
@@ -216,7 +216,7 @@ machinery as text mode, so raw/custom/lazy bodies dispatch identically) or
 hands the form back to Racket's default reader (`read-syntax/recursive` with
 the consumed `#` reinserted). References inside a re-entry body resolve against
 the *surrounding* host bindings — `#(x)` in the loop above sees the `for/list`
-variable — because the escape is read with its real lexical context.
+variable — because the escape is read with its real lexical context
 
 **Collision policy.** The trigger is a name (alphanumeric plus `-`/`/`)
 followed by `{`, `(`, or a fence opener `|=*{` — unless the name is
@@ -225,16 +225,16 @@ check applies before `{` as much as `(`: `{` is a paren-equivalent in
 Racket's reader, so `#hash{…}`, `#s{…}`, `#t{a}` are valid Racket. Reserved
 names (matched case-insensitively, as Racket accepts e.g. `#Ci(`):
 
-- the Racket reader tokens `t f true false hash hasheq hasheqv hashalw s fl
+- The Racket reader tokens `t f true false hash hasheq hasheqv hashalw s fl
   fx cs ci reader lang e i x o b d rx px`;
-- sized flvector/fxvector literals — `fl`/`fx` followed by digits
+- Sized flvector/fxvector literals — `fl`/`fx` followed by digits
   (`#fl3(0.0)`, `#fx2(1)`);
-- names that lex as Racket number literals — a number-prefix letter
+- Names that lex as Racket number literals — a number-prefix letter
   (`e i x o b d`) followed by number-ish chars containing at least one
   decimal digit (`#x1F(…)`, `#e5(…)`, `#b101(…)`, `#x1/2(…)`). Best effort:
   a number literal with **no** decimal digit (`#xFF`) or an exotic one
   (`#i+inf.0`) directly followed by `(`/`{` is still misread as re-entry —
-  put a space after a number literal before an opener (idiomatic anyway).
+  put a space after a number literal before an opener (idiomatic anyway)
 
 Consequences: a host-mode re-entry call cannot target a function whose name
 is reserved — write `(name …)` instead. This is a deliberate host/text
@@ -245,7 +245,7 @@ it there explicitly. Anything else after `#` falls back verbatim to Racket:
 booleans, chars (`#\c`), keywords (`#:kw`), numbers, regexps (`#px"…"`),
 comments (`#| |#`, `#;`), **vectors** (`#(…)` is a Racket vector literal,
 *not* a nested host escape — inside host code you are already in host),
-hashes, prefab structs, etc.
+hashes, prefab structs, etc
 
 Re-entry is recognized only in host code proper; a fallback form is read —
 including its nested elements — under the default readtable, so inside a
@@ -255,13 +255,13 @@ unevaluated call datum. Corollary: `#;` before a re-entry form in host code
 is a read error (the commented datum is read by Racket) — use `#|…|#`.
 Symmetrically, custom body parsers run under the default readtable
 (`call-custom-parser`), so a parser that itself calls `read` never observes
-the overridden `#`.
+the overridden `#`
 
-## Body-reader dispatch (`yamd/reader/registry.rkt`)
+## Body-Reader Dispatch (`yamd/reader/registry.rkt`)
 
 Decision: **runtime registry consulted at read time**, not syntax properties
 — the reader runs before expansion, so binding-attached properties are not
-visible to it.
+visible to it
 
 ```
 (struct body-reader (parse lazy?))
@@ -274,7 +274,7 @@ visible to it.
 A custom parser gets the body text (inline: brace-balanced scan; block:
 dedented) plus its srcloc, and returns the syntax of the expression passed as
 that body argument. `lazy?` makes the reader wrap the body expression in
-`(lambda () ...)` so the callee controls evaluation order (see Contexts).
+`(lambda () ...)` so the callee controls evaluation order (see Contexts)
 
 Plugins contribute entries via a `yamd-reader` **submodule** exporting
 `body-readers : (hash/c symbol? body-reader?)`. When the reader sees
@@ -287,11 +287,11 @@ yamd-reader)` if declared and merges its `body-readers` into
 `std/math: asciimath` → `yamd/std/math/asciimath`); strings are file paths
 relative to the document; any other symbol is used as a collection path
 verbatim. `eval.rkt`'s entry points parameterize `current-body-readers` with
-the merged tables of the default modules (`yamd/std/base`) before reading.
+the merged tables of the default modules (`yamd/std/base`) before reading
 
 ## Contexts (`yamd/context.rkt`)
 
-A context is a chain of mutable frames in a parameter.
+A context is a chain of mutable frames in a parameter
 
 ```
 (context-ref key [default])         ; search frames innermost-out
@@ -304,17 +304,17 @@ A context is a chain of mutable frames in a parameter.
 **When forks happen** — exactly two ways, the reader itself never forks:
 
 1. `#fork-context::` — an ordinary stdlib function registered with
-	`lazy? = #t`, implemented as `(define (fork-context body) (with-forked-context (body)))`.
+	`lazy? = #t`, implemented as `(define (fork-context body) (with-forked-context (body)))`
 2. Functions that want their body under a fork register `lazy?` and force
 	the thunk inside `with-forked-context`. Because contexts are dynamically
-	scoped, the fork is visible to everything evaluated by the thunk.
+	scoped, the fork is visible to everything evaluated by the thunk
 
 Header auto-detection lives here: `section` is registered lazy; it does
 `(with-forked-context (context-update! 'header-depth add1 0) (body))` and
 emits `h1`…`h6` from the depth. Nesting sections forks per level; the fork
 dies with the block. Sharp edge to respect: `delayed` procs run *after* all
 contexts are gone — capture any context values you need at creation time,
-never call `context-ref` inside a delayed proc.
+never call `context-ref` inside a delayed proc
 
 **Section info for `#toc`** (see `std/base.rkt`): at
 collect time each `section` records itself under the info key `'sections`.
@@ -325,9 +325,9 @@ a consumer `(reverse …)`s for document order. Each entry is
 an href), `title` the heading's `Content`. `section` also emits the heading
 with that `id`; anchors are `"sec-<n>"` (per-document counter under private
 key `'yamd-section-counter`). Depth is captured directly (section runs in
-pass 1, not in a delayed proc), per the sharp edge above.
+pass 1, not in a delayed proc), per the sharp edge above
 
-## Two-pass evaluation (`yamd/passes.rkt`)
+## Two-Pass Evaluation (`yamd/passes.rkt`)
 
 Own machinery, no scribble dependency. **Pass 1 (collect) is document
 evaluation itself**: `eval.rkt` creates a fresh `info` table, parameterizes
@@ -337,30 +337,30 @@ glossary, TOC) and return IR that may contain `delayed` nodes. **Pass 2**:
 `(resolve-content content info)` walks the IR replacing each delayed node
 with `((delayed-proc d) info)`, recursively, fuel-limited (a delayed proc
 returning delayed nodes forever is an error, not a hang). Backends only ever
-see resolved IR — `content->html` errors on a delayed node.
+see resolved IR — `content->html` errors on a delayed node
 
-## Evaluation pipeline (`yamd/eval.rkt`)
+## Evaluation Pipeline (`yamd/eval.rkt`)
 
 read → eval(=collect) → resolve → decode → render. Resolve happens BEFORE
 decode so delayed nodes that resolve to block-level content (toc, glossary)
-participate in paragraph grouping instead of being trapped inside a `<p>`.
+participate in paragraph grouping instead of being trapped inside a `<p>`
 
 - `make-yamd-namespace` — fresh base namespace with `yamd/runtime` (and by
 	default `yamd/std/base`) *attached* from this instantiation, so IR struct
-	identities are shared between document code, plugins, and the caller.
+	identities are shared between document code, plugins, and the caller
 - `yamd-eval stxs` → `(values content info)` — un-resolved, un-decoded;
 	applies `->content` to each top-level result (void vanishes —
 	statements). Runs under `call-with-fresh-context`, so context state never
-	leaks between documents.
+	leaks between documents
 - `yamd-file->content` (resolved + decoded IR), `yamd-file->html`,
-	`yamd-string->html`.
+	`yamd-string->html`
 - `decode-flow` groups inline runs into `p` elements, splitting at
 	`%para-break` markers and at block-level elements (`block-tag?` set in
-	`decode.rkt`); whitespace at paragraph edges is trimmed.
+	`decode.rkt`); whitespace at paragraph edges is trimmed
 - `yamd-body` (in `runtime.rkt`) turns a parsed body's expressions into one
 	Content list. `yamd-body` is implemented as a splicing macro that hoists
 	`define-values` and collects expression values, so block-local `#(define ...)`
-	works per DESIGN "defines inside a block are local to that block".
+	works per DESIGN "defines inside a block are local to that block"
 
 ### `#lang yamd` (`yamd/lang/reader.rkt`, `yamd/lang/expander.rkt`)
 
@@ -370,7 +370,7 @@ pipeline. `yamd/lang/reader` is the `#lang` reader; `yamd/lang/expander` is the
 module language. `read-syntax` emits `(module <name> yamd/lang/expander
 <doc-name> <source-text>)` and the expander's `#%module-begin` provides `doc`
 (resolved + decoded Content) and defines a `main` submodule that renders it to
-HTML on stdout (so `racket file.rkt` prints the document).
+HTML on stdout (so `racket file.rkt` prints the document)
 
 **Chosen approach — capture, don't embed (the deliberate tradeoff).** The
 reader captures the raw document text verbatim and the expander hands it to the
@@ -382,13 +382,13 @@ that only works inside `make-yamd-namespace`, not at module-expansion time.
 Consequence: a `#lang yamd` document is *not* compiled to Racket code; it is
 re-parsed and re-evaluated in a fresh namespace every time the module is
 instantiated. The upside is that `#use`, plugins, contexts and two-pass behave
-*identically* to `yamd-string->html` — one code path, no divergence.
+*identically* to `yamd-string->html` — one code path, no divergence
 
 Srclocs stay aligned with the source: the port handed to the reader sits just
 after `#lang yamd`, so the leading newline is preserved and the first content
 line is line 2 in both the file and the captured string; reader/runtime errors
 report `<path>:line:col` against the original file. Nothing else may depend on
-`yamd/lang/*`; it is sugar over `eval.rkt`.
+`yamd/lang/*`; it is sugar over `eval.rkt`
 
 ### CLI (`yamd/cli.rkt`)
 
@@ -402,7 +402,7 @@ the markdown/typst backend modules need not exist unless selected: `html` →
 (from `yamd-file->content`). Unknown backend and missing input file produce a
 clean `yamd: …` message on stderr with exit 1 (no stack trace). `command-line`
 stops flag parsing at the first positional argument, so argv is permuted to let
-flags follow the input file per the documented usage.
+flags follow the input file per the documented usage
 
 `--mode single|multi` (default `single`) selects a build strategy from a
 mode table analogous to the backend table; the CLI always routes through
@@ -410,21 +410,21 @@ mode table analogous to the backend table; the CLI always routes through
 step-for-step the historical pipeline (same bytes). `multi` requires `-o
 <directory>` and writes one page per source document, subdirectories
 preserved. Backend table entries carry the output extension (`.html`,
-`.md`, `.typ`) for multi-file page naming.
+`.md`, `.typ`) for multi-file page naming
 
 `--fmt` (optionally with `--check`) routes to the source formatter instead of
 a backend: `yamd --fmt file.yamd` rewrites in place, `-o out` writes elsewhere,
 `--fmt --check` writes nothing and exits 1 when the file is not already
 formatted (CI-friendly). Documents that do not parse are reported and never
-rewritten.
+rewritten
 
-### Source formatter (`yamd/fmt.rkt`)
+### Source Formatter (`yamd/fmt.rkt`)
 
 Conservative, semantics-preserving formatting for `.yamd`. YAMD is
 whitespace-/indentation-sensitive (tabs are structural, raw and custom bodies
 are verbatim, blank lines are paragraph breaks, and inside an inline `{...}`
 body or a `|{...}|` fence a blank line is *literal*), so the formatter changes
-very little and *proves* each change safe rather than trusting line heuristics.
+very little and *proves* each change safe rather than trusting line heuristics
 
 **The reader is the oracle.** `format-yamd` parses the original and each
 candidate with the real `yamd/reader`, and accepts a candidate only if it reads
@@ -436,7 +436,7 @@ and trims the top-level edges (edge para-breaks are dropped only at top level,
 never inside a nested body, where presence flips `<p>`-wrapping). Any edit that
 changes a real string, a call, or host code changes the datum and is therefore
 rejected; a small fallback ladder then tries less-normalizing candidates, so
-correctness never depends on the line pass being clever.
+correctness never depends on the line pass being clever
 
 Normalizations (all gated): CRLF→LF; whitespace-only lines emptied; runs of 3+
 blank lines → 2 outside verbatim regions; final newline guaranteed, with a
@@ -459,9 +459,9 @@ as verbatim by the srcloc scan, so a blank-line-collapse inside such a
 multi-line block relies on the oracle — when the custom parse is insensitive
 to the blanks the collapse is accepted, and when it is sensitive the oracle
 rejects it and the ladder falls back to leaving that document's interior
-blanks alone.
+blanks alone
 
-## Multi-source documents
+## Multi-Source Documents
 
 Full design with rationale: [docs/multi-doc.md](docs/multi-doc.md). Summary
 of what was added, all additive — single-document behavior is unchanged:
@@ -475,13 +475,13 @@ of what was added, all additive — single-document behavior is unchanged:
 	own fresh namespace) shares one instantiation per plugin, keeping
 	collected struct values (e.g. xref's `xdef`) recognizable across files.
 	Consequence: plugin module-level state is process-global; per-document
-	state belongs in info/context (already the rule).
+	state belongs in info/context (already the rule)
 - **`eval.rkt`**: `yamd-eval-embedded` — evaluate another file *within the
 	current collect pass*: shared `current-info`, fresh namespace, forked
 	context (optionally with `'header-depth` reset for toctree children),
 	child-file srclocs, cycle check. `make-yamd-namespace` additionally
 	attaches (without requiring) `yamd/docset` and `yamd/eval` so plugin
-	instantiations share their dynamic state with the builder.
+	instantiations share their dynamic state with the builder
 - **`docset.rkt`**: the doc-set registry — `doc-record`s (id = source path,
 	unresolved content, title, 'sections range, base depth, children),
 	toctree records, parent→children edges — *keyed by* the shared info
@@ -490,9 +490,9 @@ of what was added, all additive — single-document behavior is unchanged:
 	inside stored Content opaque. Also owns `current-docset-stack` (cycle
 	chain), `current-docset-parent` (the enclosing *page*, not rebound by
 	`#include`), and the `%toctree` marker contract shared by plugin and
-	strategies.
+	strategies
 - **`build/rewrite.rkt`** [typed]: generic IR passes — `content-ids`,
-	`rewrite-hrefs`, `shift-headings`, `replace-tagged`.
+	`rewrite-hrefs`, `shift-headings`, `replace-tagged`
 - **`build.rkt`**: `evaluate-docset` (collect over the whole set) and
 	`build-docset` = strategy applied to (docset, backend). Strategies are
 	`build-strategy` structs returning `(listof build-output)`;
@@ -502,55 +502,55 @@ of what was added, all additive — single-document behavior is unchanged:
 	toctree navs, builds an anchor→page registry from resolved IR and
 	rewrites cross-page `#anchor` hrefs to relative `page.ext#anchor`
 	(backend-agnostic — backends untouched), with prev/next/up navigation
-	via the overridable `#:wrap-page` hook.
+	via the overridable `#:wrap-page` hook
 - **Plugins**: `std/include.rkt` (`#include` = eval-time splice, inherits
 	header depth) and `std/toctree.rkt` (raw body, one child path per line;
 	registers children, emits the `%toctree` marker). Rendering a toctree
-	doc without the builder fails loudly on the leaked `%`-tag.
+	doc without the builder fails loudly on the leaked `%`-tag
 - **Tests**: `tests/golden/multidoc/` (includes; the golden runner skips
 	`_`-prefixed `.yamd` — auxiliary sources included by a test root) and
-	`tests/multidoc.rkt` (builder + CLI over `tests/fixtures/multidoc/`).
+	`tests/multidoc.rkt` (builder + CLI over `tests/fixtures/multidoc/`)
 
 Known limitation (deliberate, see docs/multi-doc.md): markdown/typst
 backends do not emit element `id`s as link *targets*, so cross-page
-fragment links in those backends may need backend-specific touch-ups.
+fragment links in those backends may need backend-specific touch-ups
 
 ## Plugin ABI
 
 A plugin is a Racket module that:
 
-1. exports ordinary functions: `(fn arg-or-#:kw ... body ...)` — each body a
+1. Exports ordinary functions: `(fn arg-or-#:kw ... body ...)` — each body a
 	Content list (or a thunk of one if registered lazy); returns Content;
-2. optionally declares a `yamd-reader` submodule exporting `body-readers`;
-3. calls `collect!`/`info-add!` and returns `delayed` nodes for two-pass
+2. Optionally declares a `yamd-reader` submodule exporting `body-readers`;
+3. Calls `collect!`/`info-add!` and returns `delayed` nodes for two-pass
 	behavior;
-4. ships golden tests under `tests/golden/<plugin>/`.
+4. Ships golden tests under `tests/golden/<plugin>/`
 
 Documents get it via `#use(...)`; nothing in core may require a plugin
-(`std/base` is the only module attached by default).
+(`std/base` is the only module attached by default)
 
-## Error reporting
+## Error Reporting
 
 Best effort, three layers: (1) reader errors report `src:line:col` from the
 port; (2) every call syntax carries the srcloc of its `#`, so
 expansion/compile errors point at the .yamd source; (3) `eval.rkt` wraps each
 top-level form's evaluation and prefixes runtime exception messages with the
 form's srcloc. Custom body parsers receive a srcloc and must use it in their
-errors. `element` carries an optional `loc` for backend-time errors.
+errors. `element` carries an optional `loc` for backend-time errors
 
-## Golden test harness
+## Golden Test Harness
 
 - Layout: `tests/golden/<area>/<name>.yamd` + `<name>.html` (rendered
 	output) and/or `<name>.sexp` (`content->sexp` of resolved IR,
 	pretty-printed, write mode). Both may exist; at least one must, an
 	expectation-less `.yamd` is an error. Exception: a `_`-prefixed `.yamd`
 	is an auxiliary source (e.g. `#include`d by a test root), skipped by the
-	runner and needing no expectation.
+	runner and needing no expectation
 - Run: `nix develop --command raco test tests/run-golden.rkt` (also runs
-	under plain `raco test tests/`).
+	under plain `raco test tests/`)
 - Bless: `nix develop --command racket tests/run-golden.rkt --bless` or
 	`YAMD_BLESS=1 nix develop --command raco test tests/run-golden.rkt`.
 	New test: write the `.yamd`, create an empty `.html`/`.sexp`, bless,
-	*review the diff* — a golden you did not read is not a test.
+	*review the diff* — a golden you did not read is not a test
 - `flake.nix` `checks.tests` runs `raco test tests/ yamd/` after a link
-	install; keep both green.
+	install; keep both green

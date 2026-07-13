@@ -2,9 +2,9 @@
 
 Issues and pull requests go on the project repository. Keep the core minimal —
 new functionality belongs in plugins (`yamd/std/…`). Every change must keep the
-test suite green and the git hooks clean.
+test suite green and the git hooks clean
 
-## How-to guides
+## How-To Guides
 
 - [howto/setup.md](howto/setup.md) — get a working dev environment
 - [howto/building/build.md](howto/building/build.md) — build the package and CLI

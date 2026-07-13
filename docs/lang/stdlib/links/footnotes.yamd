@@ -6,7 +6,7 @@
 #code{#use(std/footnote)} provides #code|{#note{…}}| — a numbered superscript
 marker whose body is recorded at collect time — and #code{#notes}, which
 renders the numbered list with backlinks. Two-pass: a #code{#note} placed
-after #code{#notes} still appears in the list, in document order.
+after #code{#notes} still appears in the list, in document order
 
 #code(lang: "plain")
 	First claim.#note{A supporting detail.} Second claim.#note{Another detail.}
@@ -22,7 +22,9 @@ First claim.#note{A supporting detail.} Second claim.#note{Another detail.}
 Corner cases:
 
 #list
-	#item: Numbering is document order, allocated at collect time — markers read 1, 2, 3 … as they appear in the source.
-	#item: #code{#notes} may appear #strong{once}: a second one would duplicate every note's element ids, so it is rejected with an explicit error. In this shared-info how-to set that means once across the whole set.
-	#item: Zero notes is fine: #code{#notes} then renders an empty list, like an empty glossary.
-	#item: Note bodies are full markup and may contain #code{#ref}s or other calls.
+	#item: Numbering is document order, allocated at collect time — markers read 1, 2, 3 … as they appear in the source
+	#item
+		#code{#notes} may appear #strong{once}: a second one would duplicate every note's element ids, so it is rejected
+		with an explicit error. In this shared-info how-to set that means once across the whole set
+	#item: Zero notes is fine: #code{#notes} then renders an empty list, like an empty glossary
+	#item: Note bodies are full markup and may contain #code{#ref}s or other calls

@@ -5,7 +5,7 @@
 
 A call carries its content as an inline brace body, several brace bodies, or
 a rest-of-line body. The body is markup by default, parsed to Content and
-passed as the call's last argument(s).
+passed as the call's last argument(s)
 
 Inline #code|{{body}}|, multi-body #code|{#row{a}{b}}| (each brace group is
 one positional argument), and #code{: rest-of-line}:
@@ -32,8 +32,10 @@ Live:
 Corner cases:
 
 #list
-	#item: Brace body XOR colon body: #code|{#name{a}: b}| is not two bodies — a call takes one form or the other.
-	#item: Braces must balance inside #code|{{body}}|; for unbalanced content use a fence (see the fences page).
-	#item: A call with an inline body still takes an indented block when it is alone on its line (#code|{#section{Title}}| over a block); a trailing #code{:} is optional — see the indented-blocks page.
-	#item: Multi-body works for any function taking several content arguments (#code{#row}, #code{#section}, even #code{#emph}).
-	#item: There must be exactly one space after the #code{:} introducer; the formatter normalizes extra spaces there.
+	#item: Brace body XOR colon body: #code|{#name{a}: b}| is not two bodies — a call takes one form or the other
+	#item: Braces must balance inside #code|{{body}}|; for unbalanced content use a fence (see the fences page)
+	#item
+		A call with an inline body still takes an indented block when it is alone on its line (#code|{#section{Title}}| over
+		a block); a trailing #code{:} is optional — see the indented-blocks page
+	#item: Multi-body works for any function taking several content arguments (#code{#row}, #code{#section}, even #code{#emph})
+	#item: There must be exactly one space after the #code{:} introducer; the formatter normalizes extra spaces there

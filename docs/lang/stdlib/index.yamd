@@ -1,9 +1,9 @@
 #use(std/toctree)
 
-#section{Standard library}::
+#section{Standard Library}::
 
 The bundled plugins: content elements, cross-reference and linking machinery,
-multi-document composition, and control flow.
+multi-document composition, and control flow
 
 #toctree(depth: 2)
 	elements/index.yamd

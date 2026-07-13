@@ -1,11 +1,11 @@
 #use(std/code)
 
-#section{Host escapes}::
+#section{Host Escapes}::
 
 #code{#(expr)} escapes from text mode into the host language (Racket). Alone
 on a line it is a statement (its value is discarded — this is how
 #code{#(define …)} works); inline it is an expression whose result becomes
-content. #code|{#name{…}}| inside host code re-enters text mode.
+content. #code|{#name{…}}| inside host code re-enters text mode
 
 #code(lang: "plain")
 	#(define price 42)
@@ -22,7 +22,7 @@ content. #code|{#name{…}}| inside host code re-enters text mode.
 Live:
 
 #(define price 42)
-The item costs #(price).
+The item costs #(price)
 
 #(define base 10)
 #emph
@@ -33,20 +33,30 @@ outer #(+ base 1)
 #(apply para (for/list ([x (quote ("a" "b" "c"))]) #emph{#(x)}))
 
 Scoping is host scoping: #code{#(define …)} inside a block body is local to
-that block — #code{bump} above is not visible at #code{outer}.
+that block — #code{bump} above is not visible at #code{outer}
 
 Markup re-entry: inside #code{#(expr)} and #code{(args)}, the forms
 #code|{#name{body}}|, #code|{#name(args){body}}| and #code{#name(args)} read
 as YAMD calls producing Content, with the same body-reader dispatch as text
 mode (so #code|{#m{…}}| still hits the math parser there). References inside
 a re-entry body see the surrounding host bindings — #code{#(x)} above sees
-the #code{for/list} variable.
+the #code{for/list} variable
 
 Corner cases:
 
 #list
-	#item: The parens of #code{#(...)} delimit host code: one datum inside is that expression (#code{#(price)}); several datums form the compound form (#code{#(define price 42)}). #code{#()} is an error.
-	#item: Reserved-token collisions: in host code, #code{#t}, #code{#f}, #code|{#hash(…)}|, #code{#x1F}, #code{#px"…"} and friends are Racket literals, never re-entry calls — a function named like a reserved token must be called as #code{(name …)} there. In #emph{text} mode #code{#hash(…)} would be an ordinary YAMD call; the asymmetry is deliberate.
-	#item: #code{#(…)} nested inside host code is a Racket #emph{vector literal} — you are already in host mode, there is nothing to escape from.
-	#item: Bare #code{#name} (no brace, no paren) in host code is not re-entry; it falls through to Racket's reader.
-	#item: Line-oriented bodies (#code{: rest-of-line}, #code{::}) do not exist in host mode — there is no "rest of line" inside an s-expression. #code{#use} is also rejected there.
+	#item
+		The parens of #code{#(...)} delimit host code: one datum inside is that expression (#code{#(price)}); several datums
+		form the compound form (#code{#(define price 42)}). #code{#()} is an error
+	#item
+		Reserved-token collisions: in host code, #code{#t}, #code{#f}, #code|{#hash(…)}|, #code{#x1F}, #code{#px"…"} and
+		friends are Racket literals, never re-entry calls — a function named like a reserved token must be called as
+		#code{(name …)} there. In #emph{text} mode #code{#hash(…)} would be an ordinary YAMD call; the asymmetry is
+		deliberate
+	#item
+		#code{#(…)} nested inside host code is a Racket #emph{vector literal} — you are already in host mode, there is
+		nothing to escape from
+	#item: Bare #code{#name} (no brace, no paren) in host code is not re-entry; it falls through to Racket's reader
+	#item
+		Line-oriented bodies (#code{: rest-of-line}, #code{::}) do not exist in host mode — there is no "rest of line"
+		inside an s-expression. #code{#use} is also rejected there

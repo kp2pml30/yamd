@@ -1,12 +1,12 @@
 #use(std/code)
 #use(std/xref)
 
-#section{Cross-references}::
+#section{Cross-References}::
 
 #code{#use(std/xref)} provides #code{#def} / #code{#ref} / #code{#glossary} /
 #code{#toc} — the two-pass showcase. #code{#def} records at collect time;
 #code{#ref}, #code{#glossary} and #code{#toc} resolve in the second pass, so
-document order does not matter: a #code{#ref} may precede its #code{#def}.
+document order does not matter: a #code{#ref} may precede its #code{#def}
 
 #code(lang: "plain")
 	A deterministic #ref("vm") runs the program — referenced before it is defined.
@@ -17,9 +17,9 @@ document order does not matter: a #code{#ref} may precede its #code{#def}.
 
 Live:
 
-A deterministic #ref("vm") runs the program — referenced before it is defined.
+A deterministic #ref("vm") runs the program — referenced before it is defined
 
-We define #def("vm"){virtual machine}{a sandboxed execution environment}.
+We define #def("vm"){virtual machine}{a sandboxed execution environment}
 
 #glossary
 
@@ -33,7 +33,7 @@ the second — #code|{#def("vm"){term}{definition}}| or
 term-only #code|{#def("vm"){term}}| is allowed (empty definition). The
 #code|{#def(id){term}: definition}| spelling from the design sketch is
 #strong{not} a form — a call cannot combine a brace body with a
-#code{: rest-of-line} body.
+#code{: rest-of-line} body
 
 #code{#toc} renders the section tree the same way (delayed, order-independent):
 
@@ -41,15 +41,15 @@ term-only #code|{#def("vm"){term}}| is allowed (empty definition). The
 	#toc
 
 It is not used live here because a #code{#toc} reflects the #strong{entire}
-doc-set — it would embed this whole how-to's outline into the page.
+doc-set — it would embed this whole how-to's outline into the page
 
-#section{Linking to another document (##doc-ref)}
+#section{Linking to Another Document (##doc-ref)}
 	#code{#doc-ref("path")} links to another #strong{document} of the set by its
 	path from the build root (the CLI's #code{--root}, or the root document's
 	directory), the #code{.yamd} extension optional. Delayed like #code{#ref}:
 	the link text defaults to the target's title, a body overrides it, and a
 	path with no matching document is a dangling reference — an error, never
-	silent.
+	silent
 
 	#code(lang: "plain")
 		See the #doc-ref("stdlib/elements/tables"){tables guide}.
@@ -61,15 +61,26 @@ doc-set — it would embed this whole how-to's outline into the page.
 	path is a document identity, so it survives the single/multi build split — an
 	in-page anchor when the set is inlined into one page, a #code{page.html#…}
 	cross-page link in multi-file — and file moves within the set. Pin
-	#code{--root} to keep the spelling stable across sub-tree builds.
+	#code{--root} to keep the spelling stable across sub-tree builds
 
 Corner cases:
 
 #list
-	#item: Ids are host code inside #code{(…)} — quote them: #code{#ref("vm")} or #code{#ref('vm)}; a bare #code{#ref(vm)} is a variable reference.
-	#item: A dangling #code{#ref} is an error at resolve time, never silent empty text; a duplicate #code{#def} id errors at collect time.
-	#item: #code|{#ref(id){custom text}}| overrides the link text (default is the definition's term).
-	#item: The glossary lists every def with backlinks to each ref site.
-	#item: In a doc-set the info table is shared, so a #code{#def} in one file resolves a #code{#ref} in another — anchors stay unique by construction.
-	#item: #code{#doc-ref} targets whole documents, not sections; for a specific section, #code{#def}/#code{#ref} a term there. Its identity is the path from #code{--root} (a section's own anchor is not a public, stable id) — pin #code{--root} to keep ids stable across sub-tree builds.
-	#item: A #code{#doc-ref} rendered without the doc-set builder (plain #code{yamd-file->html}) has no index and so is always dangling — like #code{#toctree}, it needs the CLI/builder.
+	#item
+		Ids are host code inside #code{(…)} — quote them: #code{#ref("vm")} or #code{#ref('vm)}; a bare #code{#ref(vm)}
+		is a variable reference
+	#item
+		A dangling #code{#ref} is an error at resolve time, never silent empty text; a duplicate #code{#def} id errors at
+		collect time
+	#item: #code|{#ref(id){custom text}}| overrides the link text (default is the definition's term)
+	#item: The glossary lists every def with backlinks to each ref site
+	#item
+		In a doc-set the info table is shared, so a #code{#def} in one file resolves a #code{#ref} in another — anchors
+		stay unique by construction
+	#item
+		#code{#doc-ref} targets whole documents, not sections; for a specific section, #code{#def}/#code{#ref} a term there.
+		Its identity is the path from #code{--root} (a section's own anchor is not a public, stable id) — pin
+		#code{--root} to keep ids stable across sub-tree builds
+	#item
+		A #code{#doc-ref} rendered without the doc-set builder (plain #code{yamd-file->html}) has no index and so is always
+		dangling — like #code{#toctree}, it needs the CLI/builder

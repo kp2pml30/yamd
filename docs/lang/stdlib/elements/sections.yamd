@@ -5,15 +5,17 @@
 #code{#section} takes the title as its first body and the content as the
 rest — and detects the heading level automatically: a top-level section is
 h1, a section inside another section's content is h2, and so on. Depth comes
-from the context (see the contexts page), not from an argument.
+from the context (see the contexts page), not from an argument
 
 The three forms:
 
 #list
-	#item: #code|{#section{Title}}| with nothing indented below — heading only.
-	#item: #code|{#section{Title}::}| — title plus hanging content (the idiomatic page shape).
-	#item: #code|{#section{Title}}| (or #code|{#section{Title}:}|) over an indented block — title plus that block as content; the trailing #code{:} is optional.
-	#item: #code|{#section{Title}{inline content}}| — title plus inline content.
+	#item: #code|{#section{Title}}| with nothing indented below — heading only
+	#item: #code|{#section{Title}::}| — title plus hanging content (the idiomatic page shape)
+	#item
+		#code|{#section{Title}}| (or #code|{#section{Title}:}|) over an indented block — title plus that block as content;
+		the trailing #code{:} is optional
+	#item: #code|{#section{Title}{inline content}}| — title plus inline content
 
 Siblings vs nesting — a section nested in another's #emph{content} goes one
 level deeper; a section after the first one's content ends is a sibling:
@@ -30,7 +32,16 @@ Live (this page's title is already one level, so Alpha renders one deeper):
 Corner cases:
 
 #list
-	#item: #code|{#section{Title}}| followed by an indented block takes that block as content — the same as #code|{#section{Title}:}| (the trailing #code{:} is optional) or the hanging #code|{#section{Title}::}|. When #strong{nothing} is indented below, #code|{#section{Title}}| is heading-only and a trailing #code{:} is then literal text, not an empty body.
-	#item: Nesting past h6 (depth 7) is an explicit error.
-	#item: Each section records itself for #code{#toc} at collect time and gets an #code{id} anchor (#code{sec-1}, #code{sec-2}, …) unique across the whole doc-set.
-	#item: With #code{::}, a #emph{later} #code|{#section{…}::}| at the same indentation nests inside the earlier one — within one file you cannot "close" a hanging section except by dedent. Sibling top-level sections in one file need inline bodies or separate files.
+	#item
+		#code|{#section{Title}}| followed by an indented block takes that block as content — the same as
+		#code|{#section{Title}:}| (the trailing #code{:} is optional) or the hanging #code|{#section{Title}::}|. When
+		#strong{nothing} is indented below, #code|{#section{Title}}| is heading-only and a trailing #code{:} is then literal
+		text, not an empty body
+	#item: Nesting past h6 (depth 7) is an explicit error
+	#item
+		Each section records itself for #code{#toc} at collect time and gets an #code{id} anchor (#code{sec-1},
+		#code{sec-2}, …) unique across the whole doc-set
+	#item
+		With #code{::}, a #emph{later} #code|{#section{…}::}| at the same indentation nests inside the earlier one —
+		within one file you cannot "close" a hanging section except by dedent. Sibling top-level sections in one file need
+		inline bodies or separate files

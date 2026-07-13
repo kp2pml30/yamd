@@ -6,7 +6,7 @@
 #code{style: s} with #code{s} one of #code{"1"}, #code{"a"}, #code{"A"},
 #code{"i"}, #code{"I"} selects ordered numbering, and #code{"-"} / #code{"*"}
 selects a bulleted list. Nesting is a #code{#list} inside an #code{#item}
-body — structure comes from indentation, nothing else.
+body — structure comes from indentation, nothing else
 
 #code(lang: "plain")
 	#list
@@ -32,6 +32,8 @@ Live:
 Corner cases:
 
 #list(style: "-")
-	#item: A list body may contain only #code{#item} children; whitespace and blank lines between items are dropped, anything else is an explicit error — no silent coercion.
-	#item: An unknown #code{style:} is an error listing the valid ones.
-	#item: An #code{#item} with an indented block body may hold multiple paragraphs (separate them with blank lines).
+	#item
+		A list body may contain only #code{#item} children; whitespace and blank lines between items are dropped, anything
+		else is an explicit error — no silent coercion
+	#item: An unknown #code{style:} is an error listing the valid ones
+	#item: An #code{#item} with an indented block body may hold multiple paragraphs (separate them with blank lines)

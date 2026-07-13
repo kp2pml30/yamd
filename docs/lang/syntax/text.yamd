@@ -1,10 +1,10 @@
 #use(std/code)
 
-#section{Text basics}::
+#section{Text Basics}::
 
 Plain text is content; consecutive lines join into one paragraph and a blank
 line starts a new one. The inline markup below comes from #code{std/base},
-which is loaded by default — no #code{#use} needed.
+which is loaded by default — no #code{#use} needed
 
 #code(lang: "plain")
 	First paragraph, line one.
@@ -23,23 +23,27 @@ which is loaded by default — no #code{#use} needed.
 Live:
 
 First paragraph, line one.
-First paragraph, line two.
+First paragraph, line two
 
-Second paragraph after a blank line.
+Second paragraph after a blank line
 
-#para: An explicit paragraph, standing on its own.
+#para: An explicit paragraph, standing on its own
 
-#emph{emphasis}, #strong{bold}, and #tt{inline code}.
+#emph{emphasis}, #strong{bold}, and #tt{inline code}
 
-End a line early#linebreak and keep going in the same paragraph.
+End a line early#linebreak and keep going in the same paragraph
 
-Visit #link("https://example.com"){our homepage} for details.
+Visit #link("https://example.com"){our homepage} for details
 
 Corner cases:
 
 #list
-	#item: #code{#linebreak} is an inline hard line break — it stays inside the paragraph (unlike #code{#hr}, which is a block-level rule). HTML #tt{<br />}, CommonMark backslash break, Typst #code{#linebreak()}.
-	#item: Trailing spaces on a content line are literal output — they are preserved, not stripped.
-	#item: A whitespace-only line counts as blank (a paragraph break).
-	#item: #code{#link} takes the URL as a host-language string argument and the link text as the body; a non-string URL is an error.
-	#item: Markup nests freely — #code|{#link("…"){#emph{click #strong{here}}}}| is fine.
+	#item
+		#code{#linebreak} is an inline hard line break — it stays inside the paragraph (unlike #code{#hr}, which is a
+		block-level rule). HTML #tt{<br />}, CommonMark backslash break, Typst #code{#linebreak()}
+	#item: Trailing spaces on a content line are literal output — they are preserved, not stripped
+	#item: A whitespace-only line counts as blank (a paragraph break)
+	#item
+		#code{#link} takes the URL as a host-language string argument and the link text as the body; a non-string URL is an
+		error
+	#item: Markup nests freely — #code|{#link("…"){#emph{click #strong{here}}}}| is fine

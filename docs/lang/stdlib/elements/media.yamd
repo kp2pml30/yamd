@@ -1,11 +1,11 @@
 #use(std/code)
 
-#section{Media and block elements}::
+#section{Media and Block Elements}::
 
-#code{#image}, #code{#blockquote} and #code{#hr} from #code{std/base}.
+#code{#image}, #code{#blockquote} and #code{#hr} from #code{std/base}
 #code{#image(url alt: "…")} is inline and #strong{requires} the #code{alt:}
 text; #code{#blockquote} and #code{#hr} are block-level (they break the
-surrounding paragraph).
+surrounding paragraph)
 
 #code(lang: "plain")
 	Above the rule.
@@ -26,26 +26,32 @@ surrounding paragraph).
 
 Live:
 
-Above the rule.
+Above the rule
 
 #blockquote{A short quotation.}
 
 #blockquote
 	A longer quotation spanning
-	its own indented block.
+	its own indented block
 
 #hr
 
-Here is #image("cat.png" alt: "a napping cat") shown inline.
+Here is #image("cat.png" alt: "a napping cat") shown inline
 
 #pagebreak
 
-Content after a page break.
+Content after a page break
 
 Corner cases:
 
 #list
-	#item: #code{#pagebreak} is a block-level page break: HTML #tt{<div style="break-after: page">}, Typst #code{#pagebreak()}, and a raw HTML block in Markdown (which has no native page break).
-	#item: Omitting #code{alt:} is an error, on purpose — a missing alt is invisible to sighted authors while breaking screen readers. For a purely decorative image pass an explicit #code{alt: ""}.
-	#item: The function is #code{#blockquote}, not #code{#quote} — #code{quote} is a Racket special form, and a call named #code{quote} would never reach the library.
-	#item: #code{#hr} is a zero-argument void element: no args, no body.
+	#item
+		#code{#pagebreak} is a block-level page break: HTML #tt{<div style="break-after: page">}, Typst #code{#pagebreak()},
+		and a raw HTML block in Markdown (which has no native page break)
+	#item
+		Omitting #code{alt:} is an error, on purpose — a missing alt is invisible to sighted authors while breaking screen
+		readers. For a purely decorative image pass an explicit #code{alt: ""}
+	#item
+		The function is #code{#blockquote}, not #code{#quote} — #code{quote} is a Racket special form, and a call named
+		#code{quote} would never reach the library
+	#item: #code{#hr} is a zero-argument void element: no args, no body

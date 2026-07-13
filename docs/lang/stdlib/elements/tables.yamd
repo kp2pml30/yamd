@@ -8,7 +8,7 @@
 HTML-like nested cells. #code{header: n} marks the first #code{n} rows as the
 header. Rows come in two spellings: nested #code{#cell} calls, or the
 positional multi-body #code|{#row{a}{b}}| — one brace group per cell. They
-mix freely, and cells hold arbitrary markup.
+mix freely, and cells hold arbitrary markup
 
 #code(lang: "plain")
 	#table(header: 1)
@@ -28,6 +28,10 @@ Live:
 Corner cases:
 
 #list
-	#item: Without #code{header:} there is no #code{<thead>}; all rows are body rows.
-	#item: A positional #code|{#row{a}{b}}| wraps each body in a plain cell; use nested #code{#cell} when a cell needs its own block content.
-	#item: For source-beautiful plain-text tables see the #doc-ref("stdlib/elements/pipe-tables"){pipe-tables page} — a separate plugin.
+	#item: Without #code{header:} there is no #code{<thead>}; all rows are body rows
+	#item
+		A positional #code|{#row{a}{b}}| wraps each body in a plain cell; use nested #code{#cell} when a cell needs its own
+		block content
+	#item
+		For source-beautiful plain-text tables see the #doc-ref("stdlib/elements/pipe-tables"){pipe-tables page} — a
+		separate plugin

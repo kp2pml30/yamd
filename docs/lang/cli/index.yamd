@@ -1,8 +1,8 @@
 #use(std/toctree)
 
-#section{Command line and tooling}::
+#section{Command Line and Tooling}::
 
-Rendering documents, formatting sources, and the output backends.
+Rendering documents, formatting sources, and the output backends
 
 #toctree(depth: 2)
 	compiler.yamd

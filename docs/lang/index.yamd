@@ -1,16 +1,16 @@
 #use(std/code)
 #use(std/toctree)
 
-#section{Yet Another Mark Down language}::
+#section{Yet Another Mark Down Language}::
 
-Indentation-based markup language compiling to an element IR (HTML backend first).
+Indentation-based markup language compiling to an element IR (HTML backend first)
 
 Inspiration, without any particular order:
 
-#list
-	#item: typst, latex
-	#item: ruby, haml, erb
-	#item: sphinx
+#list(style: "-")
+	#item: Typst, LaTeX
+	#item: Ruby, Haml, ERB
+	#item: Sphinx
 
 Non-goals:
 
@@ -18,19 +18,25 @@ Non-goals:
 	#item: Being HTML
 	#item
 		Being tied to Ruby or Racket. The host language is pluggable in principle,
-		but a document is a program in exactly #emph{one} host (reference implementation: Racket).
+		but a document is a program in exactly #emph{one} host (reference implementation: Racket)
 	#item
 		Being a build system, package manager or plugin ecosystem of its own.
 		Plugins are ordinary host modules found through the host's tooling (Racket
 		collections, #code{raco pkg}); YAMD adds no registry, lockfile or install
-		step, and leans on the host's build tooling rather than growing its own.
+		step, and leans on the host's build tooling rather than growing its own
 
-#section{Core principles}
+#section{Core Principles}
 	#list
-		#item: #strong{One sigil.} #code{#} is the only globally special character. Every other symbol (#code{|}, #code{*}, #code{$}, …) is plain text unless a surrounding function's reader gives it meaning.
-		#item: #strong{One form per role.} Call, comment, escape — nothing else. Headings, lists, links, tables, math are all library functions, not syntax.
-		#item: #strong{Documents are programs.} The sigil escapes from text mode into host mode; #code{{}} escapes back. Turing completeness comes from the host, not from a template mini-language.
-		#item: #strong{Two-pass evaluation} (collect → resolve) for cross-references, TOC, numbering, glossaries.
+		#item
+			#strong{One sigil.} #code{#} is the only globally special character. Every other symbol (#code{|}, #code{*},
+			#code{$}, …) is plain text unless a surrounding function's reader gives it meaning
+		#item
+			#strong{One form per role.} Call, comment, escape — nothing else. Headings, lists, links, tables, math are all
+			library functions, not syntax
+		#item
+			#strong{Documents are programs.} The sigil escapes from text mode into host mode; #code{{}} escapes back. Turing
+			completeness comes from the host, not from a template mini-language
+		#item: #strong{Two-pass evaluation} (collect → resolve) for cross-references, TOC, numbering, glossaries
 
 
 #toctree(numbered: #t depth: 2)
@@ -39,13 +45,13 @@ Non-goals:
 	stdlib/index.yamd
 	cli/index.yamd
 
-#section{Consciously accepted tradeoffs}
+#section{Consciously Accepted Tradeoffs}
 	#list
 		#item: Documents are programs: no sandboxed rendering of untrusted documents; incremental/parallel builds are harder
 		#item: One host at a time: a Ruby YAMD and a Racket YAMD would be different languages sharing a surface syntax
 		#item
-			#code{#} collides with hex colors, "issue ##42", shebangs in prose - mitigated by #code{##} and by code living in raw bodies.
+			#code{#} collides with hex colors, "issue ##42", shebangs in prose - mitigated by #code{##} and by code living in raw bodies
 		#item: Indentation: tabs only, single tab per level
 		#item: #code{args} grammar: full host expressions
-		#item: trailing #code{::}: no "until next same-name #code{::}" flat variant for now
+		#item: Trailing #code{::}: no "until next same-name #code{::}" flat variant for now
 		#item: Inline math: #code{#m{…}} only, no reader-macro shorthand

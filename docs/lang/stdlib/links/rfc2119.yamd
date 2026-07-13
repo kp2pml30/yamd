@@ -1,12 +1,12 @@
 #use(std/code)
 #use(std/rfc2119)
 
-#section{RFC 2119 keywords}::
+#section{RFC 2119 Keywords}::
 
 #code{#use(std/rfc2119)} pre-declares the RFC 2119 / RFC 8174 requirement
 keywords as cross-references built on #code{std/xref}: #code{#ref} them by
 lowercase-kebab id, list them with backlinks via #code{#glossary}, and emit
-the standard boilerplate paragraph with #code{#rfc2119-boilerplate}.
+the standard boilerplate paragraph with #code{#rfc2119-boilerplate}
 
 #code(lang: "plain")
 	#rfc2119-boilerplate
@@ -21,7 +21,7 @@ Live:
 #rfc2119-boilerplate
 
 The server #ref('must) reject expired tokens and #ref('shall-not) reuse a
-nonce. It #ref('should) rotate keys; caching is #ref('optional).
+nonce. It #ref('should) rotate keys; caching is #ref('optional)
 
 #glossary
 
@@ -31,7 +31,14 @@ nonce. It #ref('should) rotate keys; caching is #ref('optional).
 Corner cases:
 
 #list
-	#item: The eleven spellings collapse to #strong{five} requirement levels; synonyms (#code{required}, #code{shall}, #code{recommended}, #code{optional}, …) are aliases — #code{#ref('shall-not)} renders "SHALL NOT" but links to, and is backlinked under, the canonical MUST NOT entry.
-	#item: Ids are host code: quote them (#code{#ref('must)} or #code{#ref("must")}).
-	#item: Without #code{#rfc2119-boilerplate} the keywords are glossary-only — refs render and the glossary lists them, but the #code{#def-<id>} fragments have no in-page target. Emit the boilerplate once, near the top.
-	#item: Registration is idempotent per document and emits no elements by itself — a #code{#use(std/rfc2119)} that refs nothing leaves no trace in the output.
+	#item
+		The eleven spellings collapse to #strong{five} requirement levels; synonyms (#code{required}, #code{shall},
+		#code{recommended}, #code{optional}, …) are aliases — #code{#ref('shall-not)} renders "SHALL NOT" but links to,
+		and is backlinked under, the canonical MUST NOT entry
+	#item: Ids are host code: quote them (#code{#ref('must)} or #code{#ref("must")})
+	#item
+		Without #code{#rfc2119-boilerplate} the keywords are glossary-only — refs render and the glossary lists them, but
+		the #code{#def-<id>} fragments have no in-page target. Emit the boilerplate once, near the top
+	#item
+		Registration is idempotent per document and emits no elements by itself — a #code{#use(std/rfc2119)} that refs
+		nothing leaves no trace in the output

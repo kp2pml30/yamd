@@ -1,22 +1,24 @@
 #use(std/code)
 #use(std/math: asciimath)
 
-#section{Loading plugins (##use)}::
+#section{Loading Plugins (##use)}::
 
 #code{#use(mod, …)} imports a plugin — a host module exporting functions and,
 optionally, body readers — into the document. It is a top-level reader
-directive: the module's body readers apply for the rest of the file.
+directive: the module's body readers apply for the rest of the file
 
 Module path mapping:
 
 #list
-	#item: #code{std/x} → the bundled #code{yamd/std/x} (e.g. #code{#use(std/table)}).
-	#item: #code{mod: variant} → #code{mod/variant} — a variant #emph{binding}: #code{#use(std/math: asciimath)} loads #code{yamd/std/math/asciimath}, choosing the math notation. The core knows nothing about math.
-	#item: #code{"./file.rkt"} — a string is a file path relative to the document, for project-local plugins.
-	#item: Any other symbol is a collection path, verbatim.
+	#item: #code{std/x} → the bundled #code{yamd/std/x} (e.g. #code{#use(std/table)})
+	#item
+		#code{mod: variant} → #code{mod/variant} — a variant #emph{binding}: #code{#use(std/math: asciimath)} loads
+		#code{yamd/std/math/asciimath}, choosing the math notation. The core knows nothing about math
+	#item: #code{"./file.rkt"} — a string is a file path relative to the document, for project-local plugins
+	#item: Any other symbol is a collection path, verbatim
 
 Several modules may be listed in one #code{#use}, comma- or
-whitespace-separated.
+whitespace-separated
 
 #code(lang: "plain")
 	#use(std/math: asciimath)
@@ -24,9 +26,9 @@ whitespace-separated.
 
 Live (this page's top #code{#use} bound the asciimath variant):
 
-Inline math now works: #m{sum_(i=0)^n i^2}.
+Inline math now works: #m{sum_(i=0)^n i^2}
 
-#section{Plugin search path}::
+#section{Plugin Search Path}::
 
 Collection paths resolve through Racket's collection search, so
 #code{PLTCOLLECTS} is the #code{PYTHONPATH} equivalent:
@@ -40,12 +42,18 @@ omit it and the defaults are dropped. The packaged #code{yamd} binary
 (#code{nix run}) appends its own collection at runtime, so your
 #code{PLTCOLLECTS} is respected. For a durable mapping prefer
 #code{raco pkg install --link mycol/}; for project-local plugins the
-document-relative string form needs no search path at all.
+document-relative string form needs no search path at all
 
 Corner cases:
 
 #list
-	#item: #code{#use} merges the plugin's body readers at #emph{read} time — put it before the first use of the plugin's forms, conventionally at the top of the file.
-	#item: #code{#use} is not available inside host code; the reader rejects it there.
-	#item: In a doc-set, each file's #code{#use} affects only that file (children of #code{#include}/#code{#toctree} evaluate in fresh namespaces), but a plugin is instantiated once per process, so plugin module-level state is shared.
-	#item: #code{std/base} (#code{emph}, #code{strong}, #code{section}, …) is loaded by default; everything else needs an explicit #code{#use}.
+	#item
+		#code{#use} merges the plugin's body readers at #emph{read} time — put it before the first use of the plugin's
+		forms, conventionally at the top of the file
+	#item: #code{#use} is not available inside host code; the reader rejects it there
+	#item
+		In a doc-set, each file's #code{#use} affects only that file (children of #code{#include}/#code{#toctree} evaluate
+		in fresh namespaces), but a plugin is instantiated once per process, so plugin module-level state is shared
+	#item
+		#code{std/base} (#code{emph}, #code{strong}, #code{section}, …) is loaded by default; everything else needs an
+		explicit #code{#use}
