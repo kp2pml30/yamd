@@ -1,0 +1,47 @@
+#use(std/code)
+#use(std/control)
+
+#section{Control flow}::
+
+#code{#use(std/control)} adds two calls whose #emph{indented block} is a lazy
+body — loops and conditionals without hand-writing a #code{#(...)} escape. Both
+are thin wrappers over host code (the language is always available); they exist
+for the common, readable cases.
+
+#section{##foreach — loops}
+	#code|{#foreach(seq 'x)}| iterates any sequence (a list, #code{#(in-range …)},
+	a stream, a generator …). Each pass forks the context and binds #code{x} to
+	the element; the block is the body — read the element with
+	#code{#(context-ref 'x)}. The per-pass contents splice in document order:
+
+	#code(lang: "plain")
+		#list(style: "1")
+			#foreach((in-range 1 4) 'n)
+				#item{Row #(context-ref 'n)}
+
+	Live:
+
+	#list(style: "1")
+		#foreach((in-range 1 4) 'n)
+			#item{Row #(context-ref 'n)}
+
+#section{##showif — conditionals}
+	#code{#showif(test)} forces and emits its block when #code{test} is truthy,
+	and nothing otherwise — an #code{if} with no #code{else}. Because the body is
+	lazy, a dropped branch is never evaluated:
+
+	#code(lang: "plain")
+		#showif(#t){Shown.} #showif(#f){Never evaluated.}
+
+	Live:
+
+	#showif(#t){Shown.} #showif(#f){Never evaluated.}
+
+Corner cases:
+
+#list
+	#item: The names are #code{foreach} / #code{showif}, not #code{for} / #code{if} / #code{when}: a plugin's bindings share the document namespace with host code, so shadowing Racket's control forms would break #code{#(for …)} / #code{#(if …)} inside escapes.
+	#item: The loop variable is a #strong{context key} (a quoted symbol), read with #code{#(context-ref 'x)}. It lives in a #emph{forked} context, so it never leaks past the loop and a nested #code{#foreach} keeps its own binding.
+	#item: The body is forced once per element, so its side effects — a #code{#section}, a #code{#def} — run per iteration: that is how a loop generates many numbered sections or definitions.
+	#item: Both take inline, #code{: rest-of-line} and indented-block bodies alike; #code|{#foreach(seq 'x){…}}| and the block form are equivalent.
+	#item: For anything past a loop or a one-armed conditional — an #code{else}, an accumulator, early exit — drop to host code: #code{#(cond …)}, #code{#(for/list …)}, #code{#(when …)}.

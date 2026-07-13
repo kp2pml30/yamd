@@ -3,9 +3,10 @@
 #section{Standard library}::
 
 The bundled plugins: content elements, cross-reference and linking machinery,
-and multi-document composition.
+multi-document composition, and control flow.
 
 #toctree(depth: 2)
 	elements/index.yamd
 	links/index.yamd
 	multi-file/index.yamd
+	control.yamd
