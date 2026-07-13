@@ -37,6 +37,14 @@
     (check-equal? (html "#emph{a}\n\tbody\n")
                   (html "#emph{a}:\n\tbody\n")))
 
+  (test-case "a blank line between a titled call and its block does not break it"
+    ;; Blank spacer lines never close a block, so the section still takes the
+    ;; indented content as its body — identical to having no blank line.
+    (check-equal? (html "#section{foo}\n\n\tempty line does not break us!\n")
+                  (html "#section{foo}\n\tempty line does not break us!\n"))
+    (check-equal? (html "#section{foo}\n\n\tempty line does not break us!\n")
+                  "<section><h1 id=\"sec-1\">foo</h1>empty line does not break us!\n</section>"))
+
   (test-case "#section{Title}: renders title + block content"
     ;; A single content line is not <p>-wrapped (matches the hanging form);
     ;; multi-paragraph content is (see the colon-titled golden).
