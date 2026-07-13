@@ -37,6 +37,7 @@
          (struct-out page-view)
          evaluate-docset
          build-docset
+         current-docref-root
          single-file-strategy
          multi-file-strategy
          make-multi-file-strategy)
@@ -78,8 +79,68 @@
                  0 secs-end 0 children))
     (docset abs i))))
 
-(define (build-docset root-path #:strategy strategy #:backend backend)
-  ((build-strategy-build strategy) (evaluate-docset root-path) backend))
+;; Base directory for #doc-ref document ids: a #doc-ref path is written relative
+;; to this dir (the CLI's --root, e.g. a monorepo root). #f = the root
+;; document's own directory. Pinning it keeps ids stable no matter which
+;; sub-document of the tree you build.
+(define current-docref-root (make-parameter #f))
+
+(define (build-docset root-path #:strategy strategy #:backend backend
+                      #:root-dir [root-dir #f])
+  (parameterize ([current-docref-root root-dir])
+    ((build-strategy-build strategy) (evaluate-docset root-path) backend)))
+
+;; #doc-ref index installed in the info table during resolution: author path
+;; string -> (cons anchor raw-title), for every page reachable from the root
+;; that has a title heading of its own. `root-dir` (the #doc-ref base) sets the
+;; path namespace. std/xref's #doc-ref (a delayed node) reads it under this key
+;; and emits a `#anchor` link the cross-page rewriter then routes per mode.
+;; Saved/restored around resolution like the decorated 'sections — no docset
+;; mutation. The title is stored RAW (not sanitized here): #doc-ref flattens it
+;; for link text on demand, exactly as #toc does, so a two-pass title (a #ref in
+;; a heading) on an unreferenced document does not error the whole build.
+(define docref-index-key 'yamd-docref-index)
+
+(define (docref-index ds root-dir)
+  (define i (docset-info ds))
+  (for*/hash ([id (in-list (docset-pages ds))]
+              [key (in-value (docref-key root-dir id))]
+              #:when key
+              [doc (in-value (docset-doc ds id))]
+              [anchor (in-value (docset-doc-anchor i (doc-record-secs-start doc)
+                                                   (doc-record-secs-end doc)
+                                                   (doc-record-children doc)))]
+              #:when anchor)
+    (values key (cons anchor (doc-record-title doc)))))
+
+;; A document's #doc-ref path id: its source path relative to `root-dir`,
+;; extension dropped, forward slashes. #f when the document lies outside
+;; root-dir (an `..` path is no usable id) — those documents are unreferenceable.
+(define (docref-key root-dir id)
+  (define rel (find-relative-path root-dir id))
+  (and (relative-path? rel)
+       (not (memq 'up (explode-path rel)))
+       (docref-normalize (path->string (path-replace-extension rel #"")))))
+
+;; Normalize a #doc-ref path (computed here, or author-written in std/xref) to
+;; the index key form: drop a leading "./" and a trailing ".yamd", backslashes
+;; to forward slashes. Kept in sync with std/xref's docref-normalize.
+(define (docref-normalize s)
+  (regexp-replace* #rx"\\\\"
+                   (regexp-replace #rx"\\.yamd$"
+                                   (regexp-replace #rx"^\\./" s "") "")
+                   "/"))
+
+;; Resolve `root-dir` for a build: the --root override or the root doc's dir.
+;; The override is normalized the same way document identities are (symlink-
+;; resolved when it exists), so find-relative-path against the (already
+;; normalized) doc ids yields clean relative keys rather than `..` noise.
+(define (docref-root-dir ds)
+  (define override (current-docref-root))
+  (cond
+    [(not override) (path-only (docset-root-id ds))]
+    [(directory-exists? override) (normalize-path override)]
+    [else (simple-form-path override)]))
 
 (define (docset-doc ds id)
   (or (docset-doc-ref (docset-info ds) id)
@@ -110,12 +171,16 @@
      ;; strategy, or twice) — so the pristine list is restored afterwards.
      (define original (info-ref i 'sections '()))
      (define decorated (decorate-sections ds nums #:cap-h6? #t))
+     (define idx (docref-index ds (docref-root-dir ds)))
+     (define prior-idx (info-ref i docref-index-key #f))
      (define name (output-file-name (docset-root-id ds) backend))
      (define final
        (dynamic-wind
-        (lambda () (when decorated (info-set! i 'sections decorated)))
+        (lambda () (when decorated (info-set! i 'sections decorated))
+                   (info-set! i docref-index-key idx))
         (lambda () (number-headings (decode-flow (resolve-content expanded i)) nums))
-        (lambda () (when decorated (info-set! i 'sections original)))))
+        (lambda () (when decorated (info-set! i 'sections original))
+                   (info-set! i docref-index-key prior-idx))))
      ;; One merged page: a hand-authored duplicate id would emit a duplicate
      ;; html/markdown id or typst label (a hard compile error). Catch it here.
      (check-unique-ids! final name)
@@ -325,10 +390,13 @@
      ;; does not error (cap-h6? #f), unlike single-file heading inlining.
      (define original (info-ref i 'sections '()))
      (define decorated (decorate-sections ds nums #:cap-h6? #f))
+     (define idx (docref-index ds (docref-root-dir ds)))
+     (define prior-idx (info-ref i docref-index-key #f))
      ;; markers -> navs, then resolve + decode + number-headings, per page
      (define contents
        (dynamic-wind
-        (lambda () (when decorated (info-set! i 'sections decorated)))
+        (lambda () (when decorated (info-set! i 'sections decorated))
+                   (info-set! i docref-index-key idx))
         (lambda ()
           (for/hash ([id (in-list ids)])
             (define with-navs
@@ -336,7 +404,8 @@
                (doc-record-content (docset-doc ds id)) toctree-marker-tag
                (lambda (marker) (toctree-nav i ds (toctree-marker-rec i marker) id rels))))
             (values id (number-headings (decode-flow (resolve-content with-navs i)) nums))))
-        (lambda () (when decorated (info-set! i 'sections original)))))
+        (lambda () (when decorated (info-set! i 'sections original))
+                   (info-set! i docref-index-key prior-idx))))
      ;; anchor -> page registry from the RESOLVED IR of every page
      (define anchor->page (anchor-registry ids contents rels))
      (define up-of (parent-map ds ids))

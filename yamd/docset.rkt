@@ -27,6 +27,7 @@
          check-doc-cycle
          docset-section-count
          docset-doc-title
+         docset-doc-anchor
          docset-register-doc!
          docset-doc-ref
          docset-doc-ids
@@ -223,7 +224,11 @@
 (define (docset-section-count i)
   (length (info-ref i 'sections '())))
 
-(define (docset-doc-title i secs-start secs-end children fallback-path)
+;; A document's OWN title entry (list depth anchor title): the first 'sections
+;; entry it recorded itself — excluding entries produced by its toctree children
+;; (their oldest-position ranges nest inside this document's) — or #f when it
+;; records no section of its own.
+(define (docset-doc-own-entry i secs-start secs-end children)
   (define secs (info-ref i 'sections '()))
   (define total (length secs))
   ;; oldest-first entries occupying oldest positions [secs-start, secs-end)
@@ -233,15 +238,24 @@
     (for/list ([cid (in-list children)])
       (define rec (docset-doc-ref i cid))
       (cons (doc-record-secs-start rec) (doc-record-secs-end rec))))
-  (define own
-    (for/first ([entry (in-list slice)]
-                [pos (in-naturals secs-start)]
-                #:unless (for/or ([r (in-list child-ranges)])
-                           (and (>= pos (car r)) (< pos (cdr r)))))
-      entry))
+  (for/first ([entry (in-list slice)]
+              [pos (in-naturals secs-start)]
+              #:unless (for/or ([r (in-list child-ranges)])
+                         (and (>= pos (car r)) (< pos (cdr r)))))
+    entry))
+
+(define (docset-doc-title i secs-start secs-end children fallback-path)
+  (define own (docset-doc-own-entry i secs-start secs-end children))
   (if own
       (caddr own) ; the entry's title Content
       (path->string (path-replace-extension (file-name-from-path fallback-path) #""))))
+
+;; The anchor id of a document's own title heading, or #f when it records no
+;; section of its own (title then falls back to the file stem — nothing to link
+;; to). Used by the builder's #doc-ref index.
+(define (docset-doc-anchor i secs-start secs-end children)
+  (define own (docset-doc-own-entry i secs-start secs-end children))
+  (and own (cadr own)))
 
 ;; ---------------------------------------------------------------------------
 ;; The %toctree marker — the plugin <-> strategy contract, owned here so

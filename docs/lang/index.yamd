@@ -12,8 +12,18 @@ Inspiration, without any particular order:
 	#item: ruby, haml, erb
 	#item: sphinx
 
-Non-goals: being HTML; being tied to Ruby. The host language is pluggable in
-principle, but a document is a program in #emph{one} host (reference implementation: Racket).
+Non-goals:
+
+#list
+	#item: Being HTML
+	#item
+		Being tied to Ruby or Racket. The host language is pluggable in principle,
+		but a document is a program in exactly #emph{one} host (reference implementation: Racket).
+	#item
+		Being a build system, package manager or plugin ecosystem of its own.
+		Plugins are ordinary host modules found through the host's tooling (Racket
+		collections, #code{raco pkg}); YAMD adds no registry, lockfile or install
+		step, and leans on the host's build tooling rather than growing its own.
 
 #section{Core principles}
 	#list

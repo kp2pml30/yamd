@@ -66,7 +66,7 @@
                             (string-join (sort (hash-keys modes) string<?) ", ")))))
 
 ;; Flags that consume the following token as their value.
-(define value-flags '("-o" "--output" "-b" "--backend" "-m" "--mode"))
+(define value-flags '("-o" "--output" "-b" "--backend" "-m" "--mode" "--root"))
 
 ;; Racket's `command-line` stops recognizing flags at the first positional
 ;; argument, but the documented usage puts flags after the input file. Permute
@@ -96,6 +96,7 @@
   (define backend #f)
   (define mode #f)
   (define out-file #f)
+  (define root-dir #f)
   (define fmt? #f)
   (define check? #f)
   (define inputs
@@ -112,6 +113,9 @@
      [("-o" "--output") o
                         "single: write to this file instead of stdout; multi: output directory (required)"
                         (set! out-file o)]
+     [("--root") r
+                 "Base directory for #doc-ref document ids (default: the input file's directory)"
+                 (set! root-dir r)]
      [("--fmt") "Format the .yamd sources (conservative, semantics-preserving); writes in place, or to -o"
                 (set! fmt? #t)]
      [("--check") "With --fmt: exit 1 if any file is not already formatted (writes nothing)"
@@ -125,8 +129,8 @@
   (when (and check? (not fmt?))
     (die "--check is only meaningful with --fmt"))
   (when fmt?
-    (when (or backend mode)
-      (die "--backend/--mode make no sense with --fmt (formatting rewrites source, it does not render)"))
+    (when (or backend mode root-dir)
+      (die "--backend/--mode/--root make no sense with --fmt (formatting rewrites source, it does not render)"))
     (when (and out-file (not (null? (cdr inputs))))
       (die "-o with --fmt takes exactly one input file (got ~a)" (length inputs)))
     (define ok?
@@ -141,9 +145,13 @@
   (set! mode (or mode "single"))
   (define strategy (lookup-mode mode))
   (define be (load-backend backend))
+  (when root-dir
+    (unless (directory-exists? root-dir)
+      (die "--root ~a is not a directory" root-dir)))
   (define outputs
     (with-handlers ([exn:fail? (lambda (e) (die "~a" (exn-message e)))])
-      (build-docset input #:strategy strategy #:backend be)))
+      (build-docset input #:strategy strategy #:backend be
+                    #:root-dir (and root-dir (path->complete-path root-dir)))))
   (cond
     [(equal? mode "multi") (write-pages out-file outputs)]
     [else

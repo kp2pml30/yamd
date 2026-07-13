@@ -1,4 +1,5 @@
 #use(std/code)
+#use(std/xref)
 
 #section{Standard library}::
 
@@ -14,7 +15,7 @@
 
 	#list
 		#item: #code|{#row{a}{b}}| positional multi-body form is supported.
-		#item: A #emph{source-beautiful} pipe-table plugin (#code{Name | Role | Since}) exists as a separate plugin and is allowed to be pretty dumb.
+		#item: A #emph{source-beautiful} pipe-table plugin (#code{Name | Role | Since}) exists as a #doc-ref("howto/pipe-tables"){separate plugin}.
 
 #section{Cross-references / glossary (stdlib, via two-pass)}
 	#code(lang: "plain")

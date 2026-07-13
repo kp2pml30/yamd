@@ -24,9 +24,10 @@
 ;; reference, per the reader's "args are host expressions" rule.
 
 (require "../runtime.rkt"
-         (only-in racket/list append-map))
+         (only-in racket/list append-map)
+         (only-in racket/string string-join))
 
-(provide def ref glossary toc
+(provide def ref glossary toc doc-ref
          ;; Additive: collect-time def registration WITHOUT emitting an anchor
          ;; element, for plugins that pre-declare a fixed vocabulary and render
          ;; the id targets in their own output (std/rfc2119). See register-def!.
@@ -110,6 +111,49 @@
   (define n (add1 (info-ref i 'yamd-xref-ref-counter 0)))
   (info-set! i 'yamd-xref-ref-counter n)
   (string-append "ref-" (number->string n)))
+
+;; ---------------------------------------------------------------------------
+;; #doc-ref — a link to another DOCUMENT of the set, by its path from the
+;; doc-ref root (the builder's --root, or the root document's directory).
+;;
+;; Delayed: at resolve it reads the builder-installed index
+;; ('yamd-docref-index: path -> (anchor . title)) and emits a `#anchor` link to
+;; the target document's title heading. The multi-file strategy's cross-page
+;; rewriter turns that into `page.ext#anchor`; single-file leaves it an in-page
+;; anchor. An optional body overrides the link text (default: the target's
+;; title). A path with no matching document — including ANY #doc-ref rendered
+;; outside a document-set build, where no index exists — is a dangling
+;; reference: an error at resolve, never silent (like a dangling #ref).
+(define (doc-ref path . text-bodies)
+  (unless (string? path)
+    (error 'doc-ref "document path must be a string, got ~e" path))
+  (define key (docref-normalize path))
+  (define custom (and (pair? text-bodies) text-bodies))
+  (delayed
+   (lambda (info)
+     (define idx (info-ref info 'yamd-docref-index #f))
+     (define entry (and idx (hash-ref idx key #f)))
+     (unless entry
+       (error 'doc-ref
+              "dangling document reference #doc-ref(~s): no such document~a"
+              path
+              (if (and idx (positive? (hash-count idx)))
+                  (format " in the set; known: ~a"
+                          (string-join (sort (hash-keys idx) string<?) ", "))
+                  " (is this a #doc-ref outside a document-set build?)")))
+     ;; default link text = the target's title, resolved and flattened for link
+     ;; context (drop nested <a>/ids), exactly like #toc's section-title links.
+     (elem 'a #:attrs (list (cons 'href (string-append "#" (car entry))))
+           (or custom (flatten-for-link (resolve-content (cdr entry) info)))))))
+
+;; Normalize a #doc-ref path to the builder's index-key form: drop a leading
+;; "./" and a trailing ".yamd", backslashes to forward slashes. Kept in sync
+;; with build.rkt's docref-normalize.
+(define (docref-normalize s)
+  (regexp-replace* #rx"\\\\"
+                   (regexp-replace #rx"\\.yamd$"
+                                   (regexp-replace #rx"^\\./" s "") "")
+                   "/"))
 
 ;; ---------------------------------------------------------------------------
 ;; #glossary — delayed: every def, sorted by id, each with its backlinks.
@@ -247,6 +291,36 @@
       (define r (ref "missing"))
       (check-exn #rx"dangling cross-reference"
                  (lambda () ((delayed-proc r) i)))))
+
+  ;; doc-ref: delayed link to another document; resolves via the builder-
+  ;; installed index to a `#anchor` link, default text = the target's title.
+  (let ([i (make-info)])
+    (info-set! i 'yamd-docref-index
+               (hash "howto/pipe-tables" (cons "sec-42" (list "Pipe tables"))))
+    (define d (doc-ref "howto/pipe-tables"))
+    (check-pred delayed? d)
+    (check-equal? ((delayed-proc d) i)
+                  (elem 'a #:attrs '((href . "#sec-42")) (list "Pipe tables")))
+    ;; the ".yamd" extension and a leading "./" are normalized away
+    (check-equal? ((delayed-proc (doc-ref "./howto/pipe-tables.yamd")) i)
+                  (elem 'a #:attrs '((href . "#sec-42")) (list "Pipe tables")))
+    ;; a body overrides the link text (bodies are spliced like #ref's custom text)
+    (check-equal? ((delayed-proc (doc-ref "howto/pipe-tables" "here")) i)
+                  (elem 'a #:attrs '((href . "#sec-42")) (list "here"))))
+
+  ;; dangling doc-ref: unknown path errors at resolve, listing known ids.
+  (let ([i (make-info)])
+    (info-set! i 'yamd-docref-index (hash "a/b" (cons "sec-1" (list "B"))))
+    (check-exn #rx"dangling document reference.*known: a/b"
+               (lambda () ((delayed-proc (doc-ref "nope")) i))))
+
+  ;; no index at all (rendered outside a doc-set build): dangling, with a hint.
+  (let ([i (make-info)])
+    (check-exn #rx"outside a document-set build"
+               (lambda () ((delayed-proc (doc-ref "x")) i))))
+
+  ;; non-string path is rejected.
+  (check-exn #rx"document path must be a string" (lambda () (doc-ref 42)))
 
   ;; duplicate def is an error.
   (let ([i (make-info)])

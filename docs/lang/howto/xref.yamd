@@ -43,6 +43,26 @@ term-only #code|{#def("vm"){term}}| is allowed (empty definition). The
 It is not used live here because a #code{#toc} reflects the #strong{entire}
 doc-set — it would embed this whole how-to's outline into the page.
 
+#section{Linking to another document (##doc-ref)}
+	#code{#doc-ref("path")} links to another #strong{document} of the set by its
+	path from the build root (the CLI's #code{--root}, or the root document's
+	directory), the #code{.yamd} extension optional. Delayed like #code{#ref}:
+	the link text defaults to the target's title, a body overrides it, and a
+	path with no matching document is a dangling reference — an error, never
+	silent.
+
+	#code(lang: "plain")
+		See the #doc-ref("tables"){tables guide}, or #doc-ref("pipe-tables").
+
+	No live demo here: the path is resolved against the #emph{build root}, so its
+	exact spelling depends on how the set is built — this page's own path is
+	#code{xref} when the how-to is built alone, #code{howto/xref} when it is
+	nested under the language index. Unlike #code{#link} (a verbatim URL), the
+	path is a document identity, so it survives the single/multi build split — an
+	in-page anchor when the set is inlined into one page, a #code{page.html#…}
+	cross-page link in multi-file — and file moves within the set. Pin
+	#code{--root} to keep the spelling stable across sub-tree builds.
+
 Corner cases:
 
 #list
@@ -51,3 +71,5 @@ Corner cases:
 	#item: #code|{#ref(id){custom text}}| overrides the link text (default is the definition's term).
 	#item: The glossary lists every def with backlinks to each ref site.
 	#item: In a doc-set the info table is shared, so a #code{#def} in one file resolves a #code{#ref} in another — anchors stay unique by construction.
+	#item: #code{#doc-ref} targets whole documents, not sections; for a specific section, #code{#def}/#code{#ref} a term there. Its identity is the path from #code{--root} (a section's own anchor is not a public, stable id) — pin #code{--root} to keep ids stable across sub-tree builds.
+	#item: A #code{#doc-ref} rendered without the doc-set builder (plain #code{yamd-file->html}) has no index and so is always dangling — like #code{#toctree}, it needs the CLI/builder.
