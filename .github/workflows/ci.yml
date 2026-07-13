@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+# Cancel superseded runs on the same ref (a new push to a PR/branch).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  nix:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31.10.7
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      # Builds every check for this system: `tests` (raco test tests/ yamd/)
+      # and `pre-commit-check` (nixfmt / whitespace / json+yaml hooks).
+      - name: Flake check
+        run: nix flake check
+
+      # `nix flake check` evaluates but does not build packages, so build the
+      # CLI wrapper too. --no-link: CI only needs the build to succeed, not a
+      # ./result symlink.
+      - name: Build package
+        run: nix build . --no-link
