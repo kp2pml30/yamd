@@ -1,6 +1,6 @@
 # tree-sitter-yamd
 
-Tree-sitter grammar for [YAMD](../../docs/lang/design.md), covering the **reader-level
+Tree-sitter grammar for [YAMD](../../docs/lang/design.yamd), covering the **reader-level
 forms only**: call forms, host escapes, comments, fences, and plain text.
 Plugin-specific body syntax (math, pipe tables, …) is deliberately not modeled.
 
@@ -42,7 +42,7 @@ scanner (`src/scanner.c`) produces synthetic tokens:
 
 - **`NEWLINE`** consumes the line break, any following blank lines, and the
   next content line's leading tabs, recording that width as *pending*. Blank
-  lines therefore never close a block (docs/lang/design.md).
+  lines therefore never close a block (docs/lang/design.yamd).
 - **`INDENT` / `DEDENT`** reconcile the pending width against a stack of open
   levels — one token per level, so dedenting two levels emits two `DEDENT`s.
   At EOF, remaining levels are flushed, and a zero-width `NEWLINE` is emitted
@@ -51,7 +51,7 @@ scanner (`src/scanner.c`) produces synthetic tokens:
   length in scanner state; `FENCE_CONTENT` scans raw text (no `#`, no brace
   counting) up to the matching `}` + same-length `=`-run + `|`; `FENCE_CLOSE`
   consumes that closer. Lookalikes with a shorter run (`}| ` inside `|=={…`)
-  are content, per docs/lang/design.md.
+  are content, per docs/lang/design.yamd.
 - **`BLOCK_COMMENT`**: `#;{ … }` with nested-brace counting, multi-line.
 
 State (indent stack, pending width, open-fence `=`-count, EOF flag) is

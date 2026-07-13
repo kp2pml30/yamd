@@ -1,0 +1,14 @@
+#use(std/code)
+#use(std/toctree)
+
+#section{Yet Another Mark Down language}::
+
+An indentation-based markup language that compiles to an element IR (HTML
+first). One sigil (#code{#}), one form per role (calls), and documents that
+are programs in a pluggable host — headings, lists, links, tables and math
+are all library functions, not syntax.
+
+
+#toctree(numbered: #t depth: 2)
+	design.yamd
+	howto/index.yamd

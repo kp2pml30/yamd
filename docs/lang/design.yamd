@@ -1,0 +1,219 @@
+#use(std/code)
+#use(std/table)
+
+#section{Yet Another Mark Down language}
+	Indentation-based markup language compiling to an element IR (HTML backend
+	first).
+
+	Inspiration, without any particular order:
+
+	#list
+		#item: typst, latex
+		#item: ruby, haml, erb
+
+	Non-goals: being HTML; being tied to Ruby. The host language is pluggable in
+	principle, but a document is a program in #emph{one} host (reference implementation: Racket).
+
+	#section{Core principles}
+		#list
+			#item: #strong{One sigil.} #code{#} is the only globally special character. Every other symbol (#code{|}, #code{*}, #code{$}, …) is plain text unless a surrounding function's reader gives it meaning.
+			#item: #strong{One form per role.} Call, comment, escape — nothing else. Headings, lists, links, tables, math are all library functions, not syntax.
+			#item: #strong{Documents are programs.} The sigil escapes from text mode into host mode; #code{{}} escapes back. Turing completeness comes from the host, not from a template mini-language.
+			#item: #strong{Two-pass evaluation} (collect → resolve) for cross-references, TOC, numbering, glossaries.
+
+	#section{Syntax}
+		#section{Text mode}
+			Plain text is content. Structure is defined by indentation (tabs). Lines
+			at a given indent level belong to the enclosing block.
+
+			#table(header: 1)
+				#row
+					#cell: Form
+					#cell: Meaning
+				#row
+					#cell: #code{#name(args)}
+					#cell: Call. #code{args} is host code (keyword args welcome; no commas — #code{,} is Racket unquote. #code{#use} alone tolerates them).
+				#row
+					#cell: #code|{#name(args){body}}|
+					#cell: Call with inline body. Body is markup by default; parsed to content and passed as the last argument. Braces must balance.
+				#row
+					#cell: #code{#name(args): text}
+					#cell: Call with body = rest of line.
+				#row
+					#cell: #code{#name(args):} at end of line
+					#cell: Call with body = following indented block. The #code{:} is optional (see the row below); with an inline body a #code{:} and nothing indented below is literal text, not a body.
+				#row
+					#cell: #code{#name(args)::}
+					#cell: Call with body = rest of the #strong{enclosing block} (see Hanging blocks).
+				#row
+					#cell: #code|{#name(args){body}}| alone on a line
+					#cell: Body = the #code|{{body}}| plus the following indented block (the trailing #code{:} is optional sugar; #code|{#section{Title}}| and #code|{#section{Title}:}| are the same form).
+				#row
+					#cell: #code{#name(args)} alone on a line
+					#cell: Sugar for #code{#name(args):} — body = following indented block.
+				#row
+					#cell: #code{#(expr)}
+					#cell: Host escape. Statement position → statement (e.g. #code{#(define …)}); inline → expression, result converted to content.
+				#row
+					#cell: #code{##}
+					#cell: Literal #code{#}.
+				#row
+					#cell: #code{# }, #code{#;} / #code|{#;{…}}|
+					#cell: Line / block comment.
+
+			#code{(args)} and #code|{{body}}| are each optional. #code{#name} bare
+			is a zero-arg call.
+
+		#section{Host mode}
+			Inside #code{#(...)} and #code{(args)} you are in the host language.
+			#code|{#name{…}}| / #code|{#…{markup}}| re-enters text mode, producing a
+			content value (Scribble semantics). Example:
+
+			#code(lang: "plain")
+				#(for ([x items])
+					#p{#(item-name x) — #(item-price x)¥})
+
+		#section{Variables, metadata}
+			#code(lang: "plain")
+				#(define price 42)
+				The item costs #(price).
+
+				#(meta 'date "2025-01-01")   ; writes document state (collect pass)
+				Published: #(get-meta 'date) ; reads on resolve pass — order-independent
+
+			Scoping is host scoping; defines inside a block are local to that block.
+
+	#section{Blocks and indentation}
+		#code(lang: "plain")
+			#list(style: "1")
+				#item: First
+				#item
+					Second, multi-line
+					#list(style: "a")
+						#item: nested
+
+		#list
+			#item: A block body is the following lines indented one level deeper. A call alone on its line takes it — whether the call is bare (#code{#foo}) or already carries an inline body (#code|{#section{Title}}|). A trailing #code{:} is optional sugar: #code{#foo}, #code{#foo:}, #code|{#section{Title}}|, and #code|{#section{Title}:}| each take the block the same way. (With an inline body, a #code{:} and #emph{nothing} indented below is literal text, not an empty body — so prose like #code{#code{index.yamd}:} stays intact.)
+			#item: Dedent closes the block. Nesting = indentation; no #code{"-.1"}-style encodings needed (a #code{list} function may still accept them as sugar — its business).
+			#item: Indentation is tabs only, single tab per level.
+
+		#section{Hanging blocks (::)}
+			#code{::} folds the #emph{rest of the current block} into the call's
+			body, without indentation:
+
+			#code(lang: "plain")
+				#section{Motivation}::
+
+				Everything until the enclosing dedent/EOF is inside the section.
+				#note: including this.
+
+			#list
+				#item: Pure reader-level transform; evaluation sees an ordinary body.
+				#item: Recursive: a later #code{::} at the same level nests inside the earlier one. Flat LaTeX-style sectioning, if wanted, is implemented by the #code{section} function (level-aware), not by the reader.
+				#item: #code{::} at top level = rest of file (useful for #code{#template(...)::}).
+
+	#section{Contexts}
+		Host-language tweaks live in #strong{contexts} that are auto-scoped: by
+		default all settings go to the current context. #code{#fork-context::}
+		forks the current context for the rest of the enclosing block; block-bodied
+		calls fork implicitly where it makes sense. Contexts also drive
+		auto-detection, e.g. #code{section} stores the current header level in the
+		context, so nesting depth determines #code{<h1>}/#code{<h2>}/… without
+		explicit levels.
+
+	#section{Body readers (the extensibility primitive)}
+		A function may register a #strong{reader} for its body, consulted
+		#emph{before} parsing:
+
+		#table(header: 1)
+			#row
+				#cell: Reader
+				#cell: Behavior
+			#row
+				#cell: #code{markup} (default)
+				#cell: Full YAMD parsing.
+			#row
+				#cell: #code{raw}
+				#cell: Verbatim text. Block form: dedented, terminated only by dedent — no delimiter scanning at all. Inline form: brace-balanced scan, no #code{#} recognition.
+			#row
+				#cell: custom
+				#cell: Plugin-supplied parser (tables, math notations, …).
+
+		Examples:
+
+		#code(lang: "plain")
+			#code(lang: python)
+				def f(): # not a comment, raw
+					return {"x": 1}
+
+			Inline #tt{x = 1} and math #m{sum_(i=0)^n i^2}.
+
+		Context-scoped symbols keep the global symbol budget at one.
+
+		#section{Fences for pathological inline content}
+			Inline raw/markup bodies with unbalanced braces use alternative
+			delimiters (Scribble-style): #code|={|{ … }|}=|, extensible fence:
+
+			#code(lang: "plain")
+				#tt|{ unbalanced } here }|
+				#tt|==={ even }| inside }===|
+
+			Opener #code|{|X{}| closes only at #code|{}X|}|. Block raw bodies never
+			need this.
+
+	#section{Plugins}
+		#list
+			#item: A plugin is a host module exporting functions (+ optional body readers).
+			#item: #code{#use(std/table, std/math: asciimath)} imports/binds; math notation (AsciiMath / LaTeX / typst-math) is chosen by the bound plugin — the core knows nothing about math.
+			#item: Project-level #emph{reader macros} (e.g. backtick spans → #code{#tt{…}}) are allowed as opt-in sugar on top of existing functions; never new core forms.
+
+	#section{Tables}
+		Mainly support HTML-like cells:
+
+		#code(lang: "plain")
+			#table(header: 1)
+				#row
+					#cell: Name
+					#cell: Role
+				#row{Kiril}{infra}
+
+		#list
+			#item: #code|{#row{a}{b}}| positional multi-body form is supported.
+			#item: A #emph{source-beautiful} pipe-table plugin (#code{Name | Role | Since}) exists as a separate plugin and is allowed to be pretty dumb.
+
+	#section{Cross-references / glossary (stdlib, via two-pass)}
+		#code(lang: "plain")
+			#def("vm"){virtual machine}{A sandboxed execution environment.}
+			…deterministic #ref("vm") semantics…
+			#glossary
+
+		#code{def} records in collect; #code{ref}/#code{glossary} resolve in the
+		second pass. Same machinery serves TOC, numbering, citations, links and
+		backlinks.
+
+	#section{Rendering}
+		Functions emit an #strong{element IR}, not HTML strings. Backends (HTML
+		first) serialize the IR. Raw-HTML escape hatch is a function in the HTML
+		backend's namespace, clearly marked non-portable.
+
+	#section{Implementation notes (Racket plan)}
+		#list
+			#item: #code{#lang yamd}: indentation reader on top of at-exp-style parsing.
+			#item: Scribble gives at-notation, fences, and the collect/resolve architecture nearly for free; write the indentation layer + IR + HTML backend.
+			#item: Body-reader dispatch: compile-time table / syntax property on the function, consulted by the reader.
+			#item: If the host ever changes, the surface syntax and reader design survive; only #code{#(...)} contents and the plugin ABI are host-specific.
+			#item: Prefer Typed Racket with type assertions where it makes sense.
+
+	#section{Consciously accepted tradeoffs}
+		#list
+			#item: Documents are programs: no sandboxed rendering of untrusted documents; incremental/parallel builds are harder.
+			#item: One host at a time: a Ruby YAMD and a Racket YAMD would be different languages sharing a surface syntax.
+			#item: #code{#} collides with hex colors, "issue ##42", shebangs in prose — mitigated by #code{##} and by code living in raw bodies. (If the host were Ruby, #code|{#{}}|/#code{#} comment collisions would argue for a different sigil; for Racket it's fine.)
+
+	#section{Resolved questions}
+		#list
+			#item: Indentation: tabs only, single tab per level.
+			#item: #code{args} grammar: full host expressions.
+			#item: #code{::}: no "until next same-name #code{::}" flat variant for now.
+			#item: Inline math: #code{#m{…}} only, no reader-macro shorthand.
+			#item: Error reporting: best effort mapping of IR/runtime errors back to source lines through the indentation reader.

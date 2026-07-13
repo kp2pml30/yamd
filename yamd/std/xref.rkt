@@ -8,7 +8,7 @@
 ;;   #glossary                    delayed: all defs, sorted, with backlinks
 ;;   #toc                         delayed: nested list from `section` data
 ;;
-;; NOTE on syntax vs docs/lang/design.md. DESIGN writes `#def(id){term}: definition`.
+;; NOTE on syntax vs docs/lang/design.yamd. DESIGN writes `#def(id){term}: definition`.
 ;; The implemented reader does not accept a `: rest-of-line`
 ;; body AFTER a `{...}` body — a call is either brace-bodied or `:`-bodied,
 ;; not both — so that exact form parses `{term}` as the definition body and

@@ -19,7 +19,7 @@ YAMD is a markup language where structure comes from indentation (tabs), and `#`
 
 Documents are Racket programs. `#` escapes from text mode into host code; `{}` re-enters markup. Headings, lists, links, tables, and math are library functions — not syntax. The core is minimal; everything else is a plugin.
 
-The full language specification lives in [docs/lang/design.md](docs/lang/design.md); implementation internals in [docs/architecture.md](docs/architecture.md).
+The full language specification lives in [docs/lang/design.yamd](docs/lang/design.yamd); implementation internals in [docs/architecture.md](docs/architecture.md).
 
 **Two-pass evaluation** runs collect (document evaluation, where functions record metadata) followed by resolve (where deferred nodes — TOC entries, cross-references, glossary — are filled in). Plugins use this machinery without touching the core.
 
