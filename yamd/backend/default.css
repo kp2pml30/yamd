@@ -1,0 +1,58 @@
+/* yamd default stylesheet — REFERENCE asset.
+ *
+ * The HTML backend emits document FRAGMENTS (no <head>): whoever assembles the
+ * final page is responsible for including this file (inline in a <style>, or a
+ * <link rel="stylesheet">). It is not injected automatically. Copy/trim it, or
+ * override any rule downstream.
+ *
+ * It styles the classes std/xref (and friends) emit:
+ *   a.xref-ref     a #ref cross-reference link
+ *   dl.glossary    a #glossary definition list
+ *   span.backrefs  the "[1] [2]" backlinks inside a glossary entry
+ *   nav.toc        a #toc / toctree navigation tree
+ * plus per-scope hooks: a #xref-scope(ref-class: "api") adds its token as a
+ * second class on every ref to (or inside) that scope, so `a.xref-ref.api`
+ * targets them. Italic here is the DEFAULT presentation of a ref, overridable
+ * per scope — it is not baked into the document content.
+ */
+
+/* Cross-reference links: italic by default. */
+a.xref-ref {
+	font-style: italic;
+}
+
+/* Example per-scope override: refs tied to an `api` scope. Delete or adapt. */
+a.xref-ref.api {
+	font-style: normal;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* Glossary. */
+dl.glossary > dt {
+	font-weight: 600;
+}
+
+dl.glossary > dd {
+	margin: 0 0 0.75em 1.5em;
+}
+
+/* Backlinks after a glossary definition: small superscript-ish markers. */
+span.backrefs {
+	margin-left: 0.25em;
+	font-size: 0.85em;
+}
+
+span.backrefs a {
+	margin-left: 0.15em;
+	text-decoration: none;
+}
+
+/* Table of contents / toctree navigation. */
+nav.toc ul {
+	list-style: none;
+	padding-left: 1.2em;
+}
+
+nav.toc > ul {
+	padding-left: 0;
+}

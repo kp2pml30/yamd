@@ -1,0 +1,28 @@
+#use(std/xref)
+
+A root #ref{VM} is case-insensitive and resolves the root def.
+
+We define #def("VM"){virtual machine}{a sandboxed execution environment}.
+
+Plurals via alias: a #ref("vms") and a #ref(to: "vm"){custom VM text}.
+
+#defalias("vm" "vms")
+
+#xref-scope(name: "api" ref-class: "api")
+	Inside the scope, #ref{vm} shadows to the local def.
+
+	#def("vm"){API virtual machine}{the scoped meaning}
+
+	A scoped alias: #ref("vm-alias").
+
+	#defalias("vm" "vm-alias")
+
+Back at root, #ref{vm} resolves the root def again.
+
+Root glossary:
+
+#glossary
+
+Scoped glossary:
+
+#glossary(scope: "api")

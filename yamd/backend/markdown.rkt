@@ -77,7 +77,8 @@
 
 (provide content->markdown
          escape-inline
-         guard-line-start)
+         guard-line-start
+         current-markdown-styled-ref)
 
 ;; A rendered block plus its kind (kind drives spacing inside list items).
 (struct md-block ([kind : Symbol] [text : String]) #:transparent)
@@ -460,11 +461,42 @@
 (define (render-link e)
   (define href (attr-ref e 'href))
   (cond
-    [href
-     (string-append (id-anchor (attr-ref e 'id))
-                    "[" (render-inline (element-children e)) "]"
-                    "(" (format-dest href) (format-title (attr-ref e 'title)) ")")]
-    [else (render-inline-html e)]))
+    [(not href) (render-inline-html e)]
+    ;; A styled cross-reference (class carries "xref-ref"): CommonMark cannot
+    ;; carry the class, so route the whole link through the host-configurable
+    ;; hook. Default = italic (see current-markdown-styled-ref).
+    [(styled-ref? e) ((current-markdown-styled-ref) e (plain-link e href))]
+    [else (plain-link e href)]))
+
+;; The ordinary `[text](dest)` rendering (with any id anchor), shared by plain
+;; links and the default styled-ref hook.
+(: plain-link (-> element String String))
+(define (plain-link e href)
+  (string-append (id-anchor (attr-ref e 'id))
+                 "[" (render-inline (element-children e)) "]"
+                 "(" (format-dest href) (format-title (attr-ref e 'title)) ")"))
+
+;; True when `e` carries the "xref-ref" class token (a #ref cross-reference).
+(: styled-ref? (-> element Boolean))
+(define (styled-ref? e)
+  (define cls (attr-ref e 'class))
+  (and cls (and (member "xref-ref" (string-split cls " ")) #t)))
+
+;; How a #ref renders in markdown. Receives the ref element (its `class`/`href`
+;; are the styling payload) and the ALREADY-RENDERED link. Default italicises
+;; it (markdown has no class hook, and a shared stylesheet cannot reach plain
+;; markdown); override with host code to emit raw `<a class="xref-ref …">` HTML,
+;; branch on the scope classes, etc. See docs — this is the markdown arm of the
+;; cross-backend styled-element hook.
+(: current-markdown-styled-ref (Parameterof (-> element String String)))
+(define current-markdown-styled-ref
+  (make-parameter (lambda ([e : element] [rendered : String]) (wrap-italic rendered))))
+
+;; Emphasis wrapper that respects CommonMark's no-whitespace-flanking rule.
+(: wrap-italic (-> String String))
+(define (wrap-italic s)
+  (define-values (lead core trail) (split-edges-ws s))
+  (if (string=? core "") s (string-append lead "*" core "*" trail)))
 
 (: render-img (-> element String))
 (define (render-img e)

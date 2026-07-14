@@ -16,6 +16,10 @@
            (only-in yamd/backend/typst content->typst))
 
   (define-runtime-path fixtures "fixtures/multidoc")
+  ;; The typst backend emits fragments that reference #yamd-ref (the styled-ref
+  ;; hook); the caller assembles the final .typ by prepending a preamble that
+  ;; defines it. We use the shipped reference preamble for the smoke-compile.
+  (define-runtime-path typst-preamble "../yamd/backend/default-preamble.typ")
 
   (define html-backend (build-backend 'html ".html" content->html))
   (define md-backend (build-backend 'markdown ".md" content->markdown))
@@ -51,7 +55,7 @@
           [s (regexp-match-positions #rx"Setup" out)])
       (check-true (< (caar i) (caar s))))
     ;; cross-file ref stays a local anchor
-    (check-regexp-match #rx"<a id=\"ref-1\" href=\"#def-widget\">widget</a>" out)
+    (check-regexp-match #rx"<a class=\"xref-ref\" id=\"ref-1\" href=\"#def-widget\">widget</a>" out)
     ;; #toc sees the SHIFTED section depths: Intro/Setup nested under Book,
     ;; Advanced nested under Setup
     (check-regexp-match
@@ -126,8 +130,11 @@
     (check-regexp-match #rx"#metadata\\(none\\)<sec-1>\n= Book" index)
     ;; a CROSS-file fragment link stays a string link naming the right page
     ;; (typst's per-document labels can't be linked across files — documented)
-    (check-regexp-match #rx"#link\\(\"intro\\.typ#def-widget\"\\)\\[widget\\]" index)
-    (check-regexp-match #rx"#link\\(\"\\.\\./intro\\.typ#def-widget\"\\)\\[widget\\]" setup))
+    ;; the ref body is wrapped in the styled-ref hook (#yamd-ref, default emph)
+    (check-regexp-match
+     #rx"#link\\(\"intro\\.typ#def-widget\"\\)\\[#yamd-ref\\(class: \"xref-ref\"\\)\\[widget\\]\\]" index)
+    (check-regexp-match
+     #rx"#link\\(\"\\.\\./intro\\.typ#def-widget\"\\)\\[#yamd-ref\\(class: \"xref-ref\"\\)\\[widget\\]\\]" setup))
 
   ;; --- typst smoke-compile: every multi-file page must actually compile ----
   ;; Guarded on a `typst` binary being on PATH (skipped otherwise, e.g. under
@@ -140,11 +147,14 @@
       (dynamic-wind
        void
        (lambda ()
+         (define preamble (string-append (file->string typst-preamble) "\n"))
          (for ([o (in-list (build "book/index.yamd" 'multi #:backend ty-backend))])
            (define p (build-path dir (build-output-path o)))
            (make-directory* (path-only p))
            (call-with-output-file p
-             (lambda (out) (write-string (build-output-text o) out))
+             ;; prepend the reference preamble so #yamd-ref is defined
+             (lambda (out) (write-string preamble out)
+                           (write-string (build-output-text o) out))
              #:exists 'replace))
          (for ([p (in-directory dir)] #:when (equal? (path-get-extension p) #".typ"))
            (define code
@@ -311,7 +321,7 @@
   ;; --- two-pass content in a section title ----------------------------------
 
   ;; In the page itself the title resolves fine (single mode)…
-  (check-regexp-match #rx"About the <a id=\"ref-1\" href=\"#def-w\">widget</a>"
+  (check-regexp-match #rx"About the <a class=\"xref-ref\" id=\"ref-1\" href=\"#def-w\">widget</a>"
                       (build-output-text (car (build "reftitle/index.yamd" 'single))))
   ;; …but it cannot be reused as nav link text on other pages (multi mode):
   ;; explicit error naming the document, not a contract violation.

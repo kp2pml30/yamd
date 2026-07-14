@@ -1,0 +1,17 @@
+#use(std/rfc2119)
+
+#rfc2119-boilerplate
+
+Even when the FIRST reference to a keyword occurs inside an ##xref-scope
+(so the collect-time registration runs under that scope), the RFC keywords are
+a global vocabulary and resolve everywhere.
+
+#xref-scope(name: "impl")
+	Inside the scope, the server #ref('must) validate the token.
+
+	#def("token"){token}{an opaque credential}
+
+	Refer to the #ref("token") here.
+
+Back at root, the client #ref('should) retry; the scoped token def is
+NOT visible here, but the RFC keywords still are: it #ref('may) cache.

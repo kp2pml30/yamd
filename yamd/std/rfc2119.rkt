@@ -87,7 +87,9 @@
 (provide (rename-out [rfc-ref ref]
                      [rfc-glossary glossary])
          (rename-out [xref:def def]
-                     [xref:toc toc])
+                     [xref:toc toc]
+                     [xref:xref-scope xref-scope]
+                     [xref:defalias defalias])
          rfc2119-boilerplate)
 
 ;; ---------------------------------------------------------------------------
@@ -138,8 +140,11 @@
   (when (and i (not (info-ref i registered-flag #f)))
     (info-set! i registered-flag #t)
     (for ([kw (in-list canonical-keywords)])
+      ;; RFC keywords are a GLOBAL vocabulary: register at root even if the
+      ;; first #ref that triggers this happens inside an #xref-scope, so the
+      ;; keywords resolve everywhere in the document.
       (xref:register-def! (car kw) (list (cadr kw)) (list (list (caddr kw)))
-                          #:who 'rfc2119))))
+                          #:who 'rfc2119 #:at-root? #t))))
 
 ;; ---------------------------------------------------------------------------
 ;; ids
@@ -154,8 +159,12 @@
 ;; #ref — wraps std/xref's ref: ensures registration, and redirects an alias id
 ;; to its canonical level while keeping the alias's own keyword as link text.
 
-(define (rfc-ref id . text-bodies)
+;; Accepts all four #ref spellings — #ref('must), #ref{must}, #ref("must"){txt},
+;; #ref(to: "must"){txt} — by delegating the id/custom-text split to xref's own
+;; parser, then applying the RFC alias redirection on the resolved id.
+(define (rfc-ref #:to [to #f] . args)
   (ensure-registered!)
+  (define-values (id text-bodies) (xref:ref-id+custom to args))
   (define key (id->string id))
   (define alias (hash-ref alias-keywords key #f))
   (cond
@@ -165,7 +174,8 @@
     [alias
      (xref:ref (car alias) (list (cadr alias)))]
     ;; Canonical keyword or a non-keyword id: plain xref (a truly unknown id
-    ;; stays a dangling-ref error at resolve time, per xref).
+    ;; stays a dangling-ref error at resolve time, per xref). `id` is now a
+    ;; plain string/symbol, so re-apply positionally.
     [else (apply xref:ref id text-bodies)]))
 
 ;; ---------------------------------------------------------------------------
@@ -214,6 +224,18 @@
         " in this document are to be interpreted as described in RFC 2119."))
 
 ;; ---------------------------------------------------------------------------
+;; Body-reader forwarding: #use(std/rfc2119) re-exports std/xref's surface,
+;; including #xref-scope, which needs its lazy (markup, forked) body-reader
+;; registered too — the reader only merges the yamd-reader submodule of the
+;; directly #use'd module, so mirror xref's registration here.
+
+(module* yamd-reader #f
+  (require "../reader/registry.rkt")
+  (provide body-readers)
+  (define body-readers
+    (hasheq 'xref-scope (body-reader 'markup #t))))
+
+;; ---------------------------------------------------------------------------
 
 (module+ test
   (require rackunit
@@ -227,16 +249,17 @@
       (check-equal? (sort (info-ref i 'xref-def-ids '()) string<?)
                     '("may" "must" "must-not" "should" "should-not"))))
 
-  ;; ref on a canonical id links to its own def and reads its keyword.
+  ;; ref on a canonical id links to its own def and reads its keyword. Every
+  ;; xref link now carries the xref-ref class.
   (let ([i (make-info)])
     (parameterize ([current-info i])
       (define r (rfc-ref 'must))
       (check-equal? ((delayed-proc r) i)
-                    (elem 'a #:attrs '((id . "ref-1") (href . "#def-must"))
+                    (elem 'a #:attrs '((class . "xref-ref") (id . "ref-1") (href . "#def-must"))
                           (list "MUST")))))
 
   ;; ref on an ALIAS id reads the alias keyword but links to the canonical
-  ;; def, and its backlink lands under the canonical level.
+  ;; def, and its ref is recorded (for backlinks) against the canonical level.
   (let ([i (make-info)])
     (parameterize ([current-info i])
       (define r (rfc-ref 'required))
@@ -244,9 +267,25 @@
       ;; as the reader passes a {body}), so it nests one level under the anchor;
       ;; splicing flattens it in output.
       (check-equal? ((delayed-proc r) i)
-                    (elem 'a #:attrs '((id . "ref-1") (href . "#def-must"))
+                    (elem 'a #:attrs '((class . "xref-ref") (id . "ref-1") (href . "#def-must"))
                           (list (list "REQUIRED"))))
-      (check-equal? (info-ref i (list 'xref-backlink "must") #f) '("ref-1"))))
+      ;; one ref was collected, anchored ref-1
+      (check-equal? (map (lambda (v) (vector-ref v 0))
+                         (info-ref i 'xref-all-refs '()))
+                    '("ref-1"))))
+
+  ;; the new #ref spellings work through the wrapper: #ref{must} (brace id) and
+  ;; #ref(to: 'must) resolve like #ref('must).
+  (let ([i (make-info)])
+    (parameterize ([current-info i])
+      (check-equal? ((delayed-proc (rfc-ref (list "must"))) i)
+                    (elem 'a #:attrs '((class . "xref-ref") (id . "ref-1") (href . "#def-must"))
+                          (list "MUST")))))
+  (let ([i (make-info)])
+    (parameterize ([current-info i])
+      (check-equal? ((delayed-proc (rfc-ref #:to 'must)) i)
+                    (elem 'a #:attrs '((class . "xref-ref") (id . "ref-1") (href . "#def-must"))
+                          (list "MUST")))))
 
   ;; boilerplate carries exactly the five canonical id anchors.
   (let ([i (make-info)])

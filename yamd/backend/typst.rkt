@@ -106,7 +106,8 @@
          "../ir.rkt")
 
 (provide content->typst
-         escape-typst)
+         escape-typst
+         current-typst-styled-ref)
 
 ;; ===========================================================================
 ;; Anchors / labels (see the NOTE on internal anchors in the header)
@@ -374,12 +375,40 @@
 (: render-link (-> element String))
 (define (render-link e)
   (define href (assq 'href (element-attrs e)))
-  (define body (render-inline (element-children e)))
+  ;; A styled cross-reference (class carries "xref-ref") wraps its body in the
+  ;; host-configurable hook (default #yamd-ref[..], see the reference preamble);
+  ;; the #link wrapper — and same-page-anchor handling — stays here.
+  (define body
+    (let ([raw (render-inline (element-children e))])
+      (if (styled-ref? e) ((current-typst-styled-ref) e raw) raw)))
   (cond
     [(not href) body]
     [(same-page-anchor (cdr href))
      => (lambda (id) (string-append "#link(<" id ">)[" body "]"))]
     [else (string-append "#link(\"" (escape-string (cdr href)) "\")[" body "]")]))
+
+;; True when `e` carries the "xref-ref" class token (a #ref cross-reference).
+(: styled-ref? (-> element Boolean))
+(define (styled-ref? e)
+  (define p (assq 'class (element-attrs e)))
+  (and p (and (member "xref-ref" (string-split (cdr p) " ")) #t)))
+
+;; The `class` attribute (space-separated tokens), or "".
+(: class-of (-> element String))
+(define (class-of e)
+  (define p (assq 'class (element-attrs e)))
+  (if p (cdr p) ""))
+
+;; How a #ref body is styled in Typst. Receives the ref element (its `class` is
+;; the payload) and the ALREADY-RENDERED inner content, and returns the styled
+;; body that goes inside the #link. Default calls #yamd-ref from the reference
+;; preamble (default there = #emph), passing the class list so a #show / redef
+;; can branch per scope. Override with host code for other schemes.
+(: current-typst-styled-ref (Parameterof (-> element String String)))
+(define current-typst-styled-ref
+  (make-parameter
+   (lambda ([e : element] [body : String])
+     (string-append "#yamd-ref(class: \"" (escape-string (class-of e)) "\")[" body "]"))))
 
 ;; If `href` is a same-document fragment `#id` whose label was emitted on this
 ;; page, returns that id (for a `#link(<id>)`); otherwise #f (string link).

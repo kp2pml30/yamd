@@ -52,7 +52,7 @@
 ;; whole eval.rkt pipeline (namespace, #use, two-pass) runs identically.
 (test-case "use + two-pass: ref before def resolves; glossary backlinks"
   (define html (doc->html "xref.rkt"))
-  (check-regexp-match #rx"<a id=\"ref-1\" href=\"#def-vm\">virtual machine</a>" html)
+  (check-regexp-match #rx"<a class=\"xref-ref\" id=\"ref-1\" href=\"#def-vm\">virtual machine</a>" html)
   (check-regexp-match #rx"<dfn id=\"def-vm\">virtual machine</dfn>" html)
   (check-regexp-match #rx"<dl class=\"glossary\">" html)
   (check-regexp-match #rx"<a href=\"#ref-1\">\\[1\\]</a>" html))
