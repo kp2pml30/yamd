@@ -12,9 +12,27 @@
          context-update!
          call-with-forked-context
          with-forked-context
-         call-with-fresh-context)
+         call-with-fresh-context
+         ;; Frame-level API (opaque frame handle). Unlike context-ref/set!,
+         ;; these read/write ONE named frame with no chain search, and let a
+         ;; caller capture the current frame and walk its parents. A plugin
+         ;; that needs its own scope chain (std/xref) builds it on these; core
+         ;; stays free of plugin concepts.
+         current-frame
+         frame-parent
+         frame-ref
+         frame-set!)
 
 (struct ctx-frame (table parent) #:transparent)
+
+;; The current frame as an opaque handle, for capture (e.g. a delayed proc
+;; that must walk the scope chain in pass 2 — contexts are gone by then, but a
+;; captured frame and its parents stay reachable through the closure).
+(define (current-frame) (current-context))
+(define (frame-parent fr) (ctx-frame-parent fr))
+;; Read/write a SINGLE frame (no chain search — that is context-ref's job).
+(define (frame-ref fr key [default #f]) (hash-ref (ctx-frame-table fr) key default))
+(define (frame-set! fr key val) (hash-set! (ctx-frame-table fr) key val))
 
 (define current-context
   (make-parameter (ctx-frame (make-hasheq) #f)))
