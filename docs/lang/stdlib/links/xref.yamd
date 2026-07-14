@@ -43,6 +43,89 @@ term-only #code|{#def("vm"){term}}| is allowed (empty definition). The
 It is not used live here because a #code{#toc} reflects the #strong{entire}
 doc-set — it would embed this whole how-to's outline into the page
 
+#section{Spelling a ##ref}
+	Four spellings; the brace body is the #strong{id} exactly when no explicit id
+	is given elsewhere, otherwise it is the custom link text:
+
+	#code(lang: "plain")
+		#ref("vm")                 host-computed / quoted id; text = the def's term
+		#ref{vm}                   brace-body id — the terse everyday form
+		#ref("vm"){custom text}     positional id + custom link text
+		#ref(to: "vm"){custom}      keyword id + custom link text
+
+	Ids match #strong{case-insensitively} — #code|{#ref("VM")}| resolves
+	#code|{#def("vm")}| — but the #strong{definition's} casing is authoritative:
+	the link text is the def's term, and the anchor keeps the def's own spelling
+	(#code|{#def("VM")}| anchors at #code{def-VM})
+
+#section{Aliases (##defalias)}
+	#code|{#defalias(target alias …)}| registers extra ids that resolve to
+	#code{target} — plurals and alternate spellings, one definition, one glossary
+	entry. Variadic: every argument after the first is an alias. It emits nothing,
+	and like #code{#ref} it is order-independent (the target may be defined later)
+
+	#code(lang: "plain")
+		#defalias("vm" "vms" "v-m")
+
+	Arguments are #strong{space}-separated, not comma-separated: a #code{,} is
+	Racket's #code{unquote} inside #code{(…)}
+
+#section{Scopes (##xref-scope)}
+	By default every #code{#def} registers at the document #strong{root}, so a
+	definition in one file resolves a reference in another (cross-file resolution
+	is the feature). #code{#xref-scope::} opens an inner scope: #code{#def}s inside
+	it register #strong{there}, a #code{#ref} resolves by walking outward from
+	where it sits — nearest definition wins — and the same id in an inner scope
+	#strong{shadows} an outer one instead of being a duplicate error
+
+	#code(lang: "plain")
+		#def("x"){the outer x}
+
+		#xref-scope(name: "api" ref-class: "api")
+			#def("x"){the API x}
+			Inside, #ref{x} is the API x.
+
+		Outside, #ref{x} is the outer x again.
+
+	A def inside a scope is #strong{invisible} outside it (an unresolved #code{#ref}
+	is a dangling-reference error, as always). #code{name:} makes the scope
+	addressable — #code|{#glossary(scope: "api")}| lists that scope's definitions
+	instead of the root's. #code{ref-class:} is a styling hook (below)
+
+	Duplicate ids are still an error #emph{within one scope}; across scopes they
+	shadow. Aliases obey the same rule, so a scope may define its own aliases
+
+#section{Styling refs}
+	Every #code{#ref} link carries #code{class="xref-ref"}, plus the
+	#code{ref-class:} token of the scope its #strong{definition} lives in and of the
+	scope the #strong{reference} sits in — so a scoped ref renders as
+	#code|{<a class="xref-ref api" …>}|. Styling is a #strong{default rule attached
+	to that hook}, never baked into the content, so a scope can override it
+
+	Each backend expresses the hook its own way:
+
+	#list
+		#item
+			#strong{HTML} — the class rides on the #code{<a>}; style it with CSS.
+			#code{yamd/backend/default.css} is a #emph{reference} stylesheet
+			(#code{a.xref-ref} is italic, #code{a.xref-ref.api} shows a per-scope
+			override)
+		#item
+			#strong{Typst} — refs render as
+			#code|{#link(<anchor>)[#yamd-ref(class: "…")[text]]}|.
+			#code{yamd/backend/default-preamble.typ} is a #emph{reference} preamble
+			defining #code{yamd-ref} (default: #code{emph}); redefine it or branch on
+			the class list to restyle per scope
+		#item
+			#strong{Markdown} — CommonMark cannot carry a class, so refs are
+			#strong{italic} by default. Host code can override the whole rendering via
+			the #code{current-markdown-styled-ref} parameter (and
+			#code{current-typst-styled-ref} for Typst)
+
+	The two reference assets are #strong{not} injected automatically — the backends
+	emit document #emph{fragments}, so whoever assembles the final page or
+	#code{.typ} includes them
+
 #section{Linking to Another Document (##doc-ref)}
 	#code{#doc-ref("path")} links to another #strong{document} of the set by its
 	path from the build root (the CLI's #code{--root}, or the root document's
@@ -71,12 +154,14 @@ Corner cases:
 		is a variable reference
 	#item
 		A dangling #code{#ref} is an error at resolve time, never silent empty text; a duplicate #code{#def} id errors at
-		collect time
+		collect time — #emph{within one scope}. The same id in a nested #code{#xref-scope} shadows rather than collides
 	#item: #code|{#ref(id){custom text}}| overrides the link text (default is the definition's term)
-	#item: The glossary lists every def with backlinks to each ref site
+	#item
+		The glossary lists every def with backlinks to each ref site. Backlinks follow #emph{resolution}, so a ref to a
+		scoped def is counted under that def, not under a same-named one elsewhere
 	#item
 		In a doc-set the info table is shared, so a #code{#def} in one file resolves a #code{#ref} in another — anchors
-		stay unique by construction
+		stay unique by construction (a scoped def's anchor is disambiguated if it would collide)
 	#item
 		#code{#doc-ref} targets whole documents, not sections; for a specific section, #code{#def}/#code{#ref} a term there.
 		Its identity is the path from #code{--root} (a section's own anchor is not a public, stable id) — pin

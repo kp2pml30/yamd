@@ -301,6 +301,23 @@ A context is a chain of mutable frames in a parameter
 (call-with-forked-context thunk)
 ```
 
+**Frame API.** The chain is also navigable directly, for a plugin that needs
+its own scope chain rather than a single key lookup. A frame is an opaque
+handle:
+
+```
+(current-frame)                     ; capture the current frame
+(frame-parent fr)                   ; the enclosing frame, or #f at the root
+(frame-ref fr key [default])        ; read ONE frame (no chain search)
+(frame-set! fr key val)             ; write ONE frame
+```
+
+This is what makes `delayed` procs able to honour scoping: a proc captures
+`(current-frame)` at collect and walks `frame-parent` at resolve, when the
+dynamic context is long gone. `std/xref` builds `#xref-scope` on exactly these
+(defs hang off a frame; a `#ref` captures its frame and resolves outward);
+core itself stays free of any plugin concept
+
 **When forks happen** — exactly two ways, the reader itself never forks:
 
 1. `#fork-context::` — an ordinary stdlib function registered with
