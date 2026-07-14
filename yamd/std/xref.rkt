@@ -176,8 +176,15 @@
 ;; ---------------------------------------------------------------------------
 ;; #def
 
-(define (def id term . def-bodies)
-  (define anchor (register-def! id term def-bodies))
+;; `#:at-root?` registers in the ROOT scope even when the call sits inside an
+;; #xref-scope. It is what a plugin whose vocabulary is GLOBAL — one shared by
+;; the whole document set, where the first use is an accident of document order
+;; (std/rfc2119's keywords, a house-style #req) — must pass, so a scoped
+;; document cannot strand the vocabulary in its own scope and dangle every
+;; reference elsewhere. Ordinary author-written #defs never want it: an id
+;; defined inside a scope belongs to that scope.
+(define (def id term #:at-root? [at-root? #f] . def-bodies)
+  (define anchor (register-def! id term def-bodies #:at-root? at-root?))
   ;; Visible def site: a <dfn> anchor whose id is the #ref link target.
   (elem 'dfn #:attrs (list (cons 'id anchor)) term))
 
@@ -682,6 +689,17 @@
     (define outer-ref (ref "x"))
     (check-equal? (element-children ((delayed-proc inner-ref) i)) (list (list "INNER")))
     (check-equal? (element-children ((delayed-proc outer-ref) i)) (list (list "OUTER"))))
+
+  ;; #def(#:at-root? #t) inside a scope registers at ROOT: a global vocabulary
+  ;; (rfc2119 keywords, a house-style #req) must not be stranded in whichever
+  ;; scope happened to use it first — an outer ref still resolves it.
+  (with-doc i
+    (define outer #f)
+    (xref-scope (lambda () (def "kw" (list "KW") #:at-root? #t) '()))
+    (set! outer (ref "kw"))
+    (check-equal? (element-children ((delayed-proc outer) i)) (list (list "KW")))
+    ;; and it lands in the ROOT glossary, not the scope's
+    (check-equal? (info-ref i 'xref-def-ids '()) (list "kw")))
 
   ;; a def inside a scope is invisible to an outer sibling ref (falls through
   ;; to root; dangling if root has none).

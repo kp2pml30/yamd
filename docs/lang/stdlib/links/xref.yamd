@@ -95,6 +95,15 @@ doc-set — it would embed this whole how-to's outline into the page
 	Duplicate ids are still an error #emph{within one scope}; across scopes they
 	shadow. Aliases obey the same rule, so a scope may define its own aliases
 
+	#code|{#def(id #:at-root? #t){term}{…}}| registers at the root #strong{even
+	inside a scope}. A plugin whose vocabulary is #strong{global} — one shared by
+	the whole document set, where which reference comes first is an accident of
+	document order (std/rfc2119's keywords, a house-style requirement word) —
+	needs this; otherwise the first use inside a scoped document strands the
+	whole vocabulary in that scope and every reference to it elsewhere dangles.
+	An author's own #code{#def} never wants it: an id defined inside a scope
+	belongs to that scope
+
 #section{Styling refs}
 	Every #code{#ref} link carries #code{class="xref-ref"}, plus the
 	#code{ref-class:} token of the scope its #strong{definition} lives in and of the
