@@ -3,11 +3,14 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
+    systems.url = "github:nix-systems/default";
+    flake-utils = {
+      url = "github:numtide/flake-utils";
+      inputs.systems.follows = "systems";
+    };
     git-hooks = {
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.flake-utils.follows = "flake-utils";
     };
   };
 
@@ -17,6 +20,7 @@
       nixpkgs,
       flake-utils,
       git-hooks,
+      ...
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -35,7 +39,7 @@
         pre-commit-check = git-hooks.lib.${system}.run {
           src = ./.;
           hooks = {
-            nixfmt-rfc-style.enable = true;
+            nixfmt.enable = true;
             trim-trailing-whitespace = {
               enable = true;
               excludes = generated;
@@ -99,6 +103,7 @@
         apps.default = {
           type = "app";
           program = "${self.packages.${system}.default}/bin/yamd";
+          meta.description = "Render a YAMD document";
         };
 
         # `nix fmt` — runs the same generated hook set as `nix flake check`.
