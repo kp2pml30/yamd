@@ -1,0 +1,6 @@
+#use("cache-bust.rkt")
+
+#cache-bust
+
+#image("photo.png" alt: "png")
+#image("https://example.com/x.png" alt: "remote")

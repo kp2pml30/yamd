@@ -10,6 +10,7 @@
          "passes.rkt"
          "decode.rkt"
          "runtime.rkt"
+         (only-in "image.rkt" current-image-resolver)
          "docset.rkt"
          "backend/html.rkt"
          "reader/reader.rkt"
@@ -107,7 +108,9 @@
 (define (yamd-eval stxs #:namespace [ns (make-yamd-namespace)])
   (define i (make-info))
   (define content
-    (parameterize ([current-info i])
+    ;; per-document: a resolver set inside the document dies with it
+    (parameterize ([current-info i]
+                   [current-image-resolver (current-image-resolver)])
       (call-with-fresh-context
        (lambda ()
          (for/list ([stx (in-list stxs)])
@@ -139,7 +142,8 @@
   (define stxs (yamd-read-file abs))
   (define (run)
     (parameterize ([current-yamd-source abs]
-                   [current-docset-stack (cons abs (current-docset-stack))])
+                   [current-docset-stack (cons abs (current-docset-stack))]
+                   [current-image-resolver (current-image-resolver)])
       (call-with-forked-context
        (lambda ()
          (when reset? (context-set! 'header-depth 0))

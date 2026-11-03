@@ -114,7 +114,7 @@
                         "single: write to this file instead of stdout; multi: output directory (required)"
                         (set! out-file o)]
      [("--root") r
-                 "Base directory for #doc-ref document ids (default: the input file's directory)"
+                 "Base directory for #doc-ref ids (default: the input file's directory) and root-relative /image srcs"
                  (set! root-dir r)]
      [("--fmt") "Format the .yamd sources (conservative, semantics-preserving); writes in place, or to -o"
                 (set! fmt? #t)]

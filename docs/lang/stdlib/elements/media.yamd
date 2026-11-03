@@ -55,3 +55,73 @@ Corner cases:
 		The function is #code{#blockquote}, not #code{#quote} — #code{quote} is a Racket special form, and a call named
 		#code{quote} would never reach the library
 	#item: #code{#hr} is a zero-argument void element: no args, no body
+
+#section{Images}
+	#code{#image(src alt: "…" width: w height: h loading: "lazy")} — only #code{alt:} is required. A #strong{local} src
+	is a file path relative to the document that names it (like #code{#include}); its pixel size is read from the file
+	header (PNG, JPEG, GIF, WebP) and emitted as #code{width} / #code{height}, so the browser reserves the space before
+	the image loads. The cat above renders as:
+
+	#code(lang: "plain")
+		<img src="cat.png" width="96" height="64" alt="a napping cat" loading="lazy" decoding="async" />
+
+	#list
+		#item
+			#code{width:} / #code{height:} are positive integers (CSS pixels) and override the file; given only one, the
+			other follows the image's aspect ratio
+		#item
+			#code{loading:} is #code{"lazy"} (default) or #code{"eager"} — use #code{"eager"} for an above-the-fold hero
+			image. #code{decoding="async"} is always emitted
+		#item
+			A src with a scheme (#code{https:}, #code{data:}, …) or a protocol-relative #code{//host/…} is remote and
+			passes through untouched: no file access, no size unless you give one
+		#item
+			A root-relative #code{/static/x.png} resolves under the CLI's #code{--root} directory; without
+			#code{--root} it is left untouched (the site root is not knowable)
+		#item
+			#code{?query} and #code{#fragment} are ignored and #code{%XX} escapes decoded for the file lookup; the
+			emitted src is always the author's spelling
+		#item
+			A missing local file, or one that is not a PNG/JPEG/GIF/WebP, is a located error. SVG has no intrinsic
+			pixel size: it must exist, but only explicit dimensions are emitted
+		#item
+			JPEG EXIF orientations 5–8 (rotated 90°) report transposed dimensions, matching how browsers lay them out
+		#item
+			Responsive layouts need #code{img { max-width: 100%; height: auto }} in the stylesheet — otherwise a
+			shrunken image keeps its attribute height and stretches
+		#item
+			Markdown and Typst output ignore the size and loading attributes (#code{![alt](src)} /
+			#code{#image("src", alt: …)})
+		#item
+			The emitted src is not rewritten for the output location: an image named from an #code{#include}d file in
+			another directory, or a single-mode build that inlines such a page, keeps its source-relative spelling
+
+	#section{Asset Resolver Hook}
+		The #code{src} and size attributes come from the #code{current-image-resolver} parameter (#code{yamd/image}): a
+		procedure #code{(src path width height) -> attrs}. #code{path} is the resolved local file, or #code{#f} for a
+		remote / unresolvable src; #code{width} / #code{height} are the explicit arguments or #code{#f}; the result is
+		an association list of attributes holding at least #code{src}. #code{#image} adds #code{alt}, #code{loading}
+		and #code{decoding} unless the resolver already set them. #code{default-image-resolver} does the sizing above;
+		wrap it to rewrite src, e.g. a cache-busting plugin on #code{PLTCOLLECTS}:
+
+		#code(lang: "racket")
+			#lang racket/base
+			(require file/sha1 yamd/image)
+			(provide cache-bust)
+
+			(define (cache-bust)
+			  (define next (current-image-resolver))
+			  (current-image-resolver
+			   (lambda (src path width height)
+			     (define attrs (next src path width height))
+			     (if path
+			         (cons (cons 'src (format "~a?h=~a" src (call-with-input-file path sha1)))
+			               (remove (assq 'src attrs) attrs))
+			         attrs))))
+
+		A document opts in with #code{#use(site/assets)} then #code{#cache-bust}; every later #code{#image} of that
+		document (and the files it embeds, #code{#toctree} children included) goes through it. The parameter is
+		rebound per document evaluation, so the setting never leaks into the parent or the next document. An
+		#code{#image} built inside a delayed (second-pass) node runs after that evaluation, with the outer resolver and
+		source directory. Install it from a call, not the plugin's module body: a plugin is
+		instantiated once per process. A Racket embedder can instead #code{parameterize} it around #code{build-docset}

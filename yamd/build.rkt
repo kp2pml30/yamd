@@ -28,6 +28,7 @@
          "decode.rkt"
          "docset.rkt"
          "eval.rkt"
+         (only-in "runtime.rkt" current-docref-root)
          "build/rewrite.rkt")
 
 (provide (struct-out build-output)
@@ -78,12 +79,6 @@
                  (docset-doc-title i 0 secs-end children abs)
                  0 secs-end 0 children))
     (docset abs i))))
-
-;; Base directory for #doc-ref document ids: a #doc-ref path is written relative
-;; to this dir (the CLI's --root, e.g. a monorepo root). #f = the root
-;; document's own directory. Pinning it keeps ids stable no matter which
-;; sub-document of the tree you build.
-(define current-docref-root (make-parameter #f))
 
 (define (build-docset root-path #:strategy strategy #:backend backend
                       #:root-dir [root-dir #f])

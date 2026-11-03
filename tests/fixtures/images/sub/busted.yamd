@@ -1,0 +1,5 @@
+#use("../cache-bust.rkt")
+
+#cache-bust
+
+#image("../photo.png" alt: "child")

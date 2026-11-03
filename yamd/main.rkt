@@ -9,6 +9,7 @@
          "eval.rkt"
          "docset.rkt"
          "build.rkt"
+         "image.rkt"
          "backend/html.rkt"
          "reader/reader.rkt"
          "reader/registry.rkt")
@@ -21,6 +22,7 @@
          (all-from-out "eval.rkt")
          (all-from-out "docset.rkt")
          (all-from-out "build.rkt")
+         (all-from-out "image.rkt")
          (all-from-out "backend/html.rkt")
          (all-from-out "reader/reader.rkt")
          (all-from-out "reader/registry.rkt"))

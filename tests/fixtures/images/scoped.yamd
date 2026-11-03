@@ -1,0 +1,6 @@
+#use(std/include)
+
+#include("sub/busted.yamd")
+
+#image("photo.png" alt: "after")
+#image("vector.svg" alt: "svg" width: 8)

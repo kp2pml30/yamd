@@ -23,7 +23,8 @@ Flags:
 	#item
 		#code{--root <dir>} — base directory for #code{#doc-ref} document ids (default: the input file's directory); see
 		the cross-references page. Pin it to a stable root (e.g. a repo root) so #code{#doc-ref} paths stay the same no
-		matter which sub-document you build
+		matter which sub-document you build. Root-relative #code{#image("/x.png")} srcs resolve under it too (no default:
+		without #code{--root} they are left untouched)
 	#item: #code{--fmt [--check]} — the source formatter; see the formatting page
 
 A document may instead be a Racket module by starting with #code{#lang yamd}:

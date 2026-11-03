@@ -7,6 +7,7 @@
 
 (require "../runtime.rkt"
          (only-in "../decode.rkt" para-break?)
+         (only-in "../image.rkt" current-image-resolver image-src->path)
          (only-in racket/list append-map))
 
 (provide emph strong tt
@@ -60,7 +61,14 @@
 ;; image that should be *skipped* by assistive tech, pass an explicit empty
 ;; alt: "" — that is the accessible way to say "no textual content", and the
 ;; explicitness keeps it a deliberate choice, not an oversight.
-(define (image url #:alt [alt #f])
+;;
+;; A local src is resolved like #include and sized from the file's header
+;; (yamd/image): width/height attributes reserve layout space before the image
+;; loads. Explicit width:/height: win; one alone keeps the aspect ratio.
+;; loading: "lazy" (default) / "eager", decoding="async" always. The attrs
+;; come from current-image-resolver (the plugin hook); ours fill the rest.
+(define (image url #:alt [alt #f] #:width [width #f] #:height [height #f]
+               #:loading [loading "lazy"])
   (unless (string? url)
     (error 'image "url must be a string, got ~e" url))
   (unless alt
@@ -68,7 +76,14 @@
            "image requires alt: text for accessibility (screen readers, indexing); pass alt: \"\" for a purely decorative image"))
   (unless (string? alt)
     (error 'image "alt must be a string, got ~e" alt))
-  (elem 'img #:attrs (list (cons 'src url) (cons 'alt alt))))
+  (for ([v (in-list (list width height))] [name '(width height)])
+    (unless (or (not v) (exact-positive-integer? v))
+      (error 'image "~a must be a positive integer (pixels), got ~e" name v)))
+  (unless (member loading '("lazy" "eager"))
+    (error 'image "loading must be \"lazy\" or \"eager\", got ~e" loading))
+  (define attrs ((current-image-resolver) url (image-src->path url) width height))
+  (define ours (list (cons 'alt alt) (cons 'loading loading) (cons 'decoding "async")))
+  (elem 'img #:attrs (append attrs (filter (lambda (a) (not (assq (car a) attrs))) ours))))
 
 ;; ---------------------------------------------------------------------------
 ;; Blocks
@@ -251,14 +266,25 @@
   (check-exn #rx"url must be a string" (lambda () (yamd-link 42 "t")))
 
   ;; --- image: void img, alt required -------------------------------------
-  (check-equal? (image "cat.png" #:alt "a cat")
-                (elem 'img #:attrs '((src . "cat.png") (alt . "a cat"))))
+  ;; (local files, sizing and the resolver hook: tests/image.rkt)
+  (define lazy '((loading . "lazy") (decoding . "async")))
+  (check-equal? (image "https://x/cat.png" #:alt "a cat")
+                (elem 'img #:attrs `((src . "https://x/cat.png") (alt . "a cat") ,@lazy)))
   ;; empty alt is the deliberate "decorative" escape hatch — allowed.
-  (check-equal? (image "sep.png" #:alt "")
-                (elem 'img #:attrs '((src . "sep.png") (alt . ""))))
+  (check-equal? (image "https://x/sep.png" #:alt "")
+                (elem 'img #:attrs `((src . "https://x/sep.png") (alt . "") ,@lazy)))
+  (check-equal? (image "https://x/a.png" #:alt "a" #:width 10 #:loading "eager")
+                (elem 'img #:attrs '((src . "https://x/a.png") (width . "10") (alt . "a")
+                                     (loading . "eager") (decoding . "async"))))
   (check-exn #rx"image requires alt" (lambda () (image "cat.png")))
   (check-exn #rx"alt must be a string" (lambda () (image "cat.png" #:alt 42)))
   (check-exn #rx"url must be a string" (lambda () (image 42 #:alt "x")))
+  (check-exn #rx"width must be a positive integer"
+             (lambda () (image "https://x/a.png" #:alt "a" #:width 0)))
+  (check-exn #rx"height must be a positive integer"
+             (lambda () (image "https://x/a.png" #:alt "a" #:height "10")))
+  (check-exn #rx"loading must be"
+             (lambda () (image "https://x/a.png" #:alt "a" #:loading "auto")))
 
   ;; --- linebreak / blockquote / hr / pagebreak ----------------------------
   (check-equal? (linebreak) (elem 'br))

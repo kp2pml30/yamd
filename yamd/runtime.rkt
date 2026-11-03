@@ -14,6 +14,7 @@
          ->content
          para-break
          current-yamd-source
+         current-docref-root
          (all-from-out "ir.rkt")
          (all-from-out "context.rkt")
          ;; The info-table accessors are UNTYPED here (info-table.rkt), never
@@ -30,6 +31,14 @@
 ;; names them. Lives here (not in eval.rkt) so plugin instantiations in
 ;; document namespaces — where yamd/runtime is always attached — share it.
 (define current-yamd-source (make-parameter #f))
+
+;; Base directory for #doc-ref document ids: a #doc-ref path is written relative
+;; to this dir (the CLI's --root, e.g. a monorepo root). #f = the root
+;; document's own directory. Pinning it keeps ids stable no matter which
+;; sub-document of the tree you build. Also the site root that root-relative
+;; `/x.png` image srcs resolve under (yamd/image; #f = left unresolved).
+;; Lives here, like current-yamd-source, so plugins read the builder's value.
+(define current-docref-root (make-parameter #f))
 
 ;; Coerce a host value to Content. Void disappears (statement results);
 ;; numbers/symbols display; anything else is an error — no silent ~a dumping.

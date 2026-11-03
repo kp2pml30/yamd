@@ -31,7 +31,12 @@
     [(_ doc-name source-text)
      #'(#%module-begin
         (define doc
-          (yamd-string->content source-text #:src (doc-src doc-name)))
+          (let ([run (lambda ()
+                       (yamd-string->content source-text #:src (doc-src doc-name)))])
+            ;; a real file: relative #include / #image paths resolve next to it
+            (if (string? doc-name)
+                (call-with-document-source doc-name run)
+                (run))))
         (provide doc)
         (module* main #f
           (display (content->html doc))

@@ -1,0 +1,8 @@
+#use(std/include)
+
+#image("photo.png" alt: "png")
+#image("lossy.webp?v=1" alt: "webp" width: 3)
+#image("rotated.jpg" alt: "jpeg" height: 3 loading: "eager")
+#image("https://example.com/x.png" alt: "remote")
+
+#include("sub/child.yamd")
